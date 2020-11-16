@@ -1,0 +1,34 @@
+<div class="px-1 pt-3 pb-1 h-100">
+  <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+    <div class="d-flex">
+      <p class="h5 flex-grow-1 pb-3">Cable</p>
+      <button mat-stroked-button color="primary" class="mr-2" (click)="save()">
+        Add/Update Cable
+      </button>
+      <button mat-stroked-button color="warn" (click)="clear()">Clear</button>
+    </div>
+    <div class="d-flex mt-2">
+      <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput placeholder="Name" [(ngModel)]="cable.cable_name" />
+      </mat-form-field>
+      <!-- <mat-form-field appearance="outline" class="ml-3">
+          <mat-label>Description</mat-label>
+          <input matInput placeholder="Driver ID" [(ngModel)]="cable.driver_id" />
+        </mat-form-field> -->
+    </div>
+
+    <div id="cable-list-grid-container" class="flex-grow-1">
+      <angular-slickgrid
+        gridHeight="100%"
+        gridWidth="100%"
+        gridId="cableGrid"
+        [columnDefinitions]="cable_list_grid_column_definitions"
+        [gridOptions]="cable_list_grid_options"
+        [dataset]="cable_list_grid_dataset"
+        (onAngularGridCreated)="cableListGridReady($event)"
+      >
+      </angular-slickgrid>
+    </div>
+  </mat-card>
+</div>

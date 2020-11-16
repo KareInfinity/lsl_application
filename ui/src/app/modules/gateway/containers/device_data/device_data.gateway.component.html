@@ -1,0 +1,119 @@
+<form class="px-1 pt-3 pb-1 h-100">
+  <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+    <div class="d-flex no-gutters mb-3 align-items-center">
+      <p class="h5 flex-grow-1 align-self-start">Active Devices</p>
+      <div *ngIf="is_loading" class="mr-3">
+        <gateway-loader></gateway-loader>
+      </div>
+      
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="showIDHDevices()"
+        class="mr-3"
+      >
+        Show IDH Devices
+      </button>
+      <button
+        *ngIf="device.device_type == 'IDH'"
+        mat-stroked-button
+        color="primary"
+        (click)="is_grouped_by_idh ? resetGrid() : groupByIDH()"
+        class="mr-3"
+      >
+        {{ is_grouped_by_idh ? "Ungroup" : "Group by IDH" }}
+      </button>
+      <button
+        class="mr-3"
+        mat-stroked-button
+        color="warn"
+        (click)="resetPage()"
+      >
+        Reset
+      </button>
+      <button
+        mat-icon-button
+        data-toggle="collapse"
+        data-target="#filter-collapse"
+        color="primary"
+        class="mt-1 ml-auto"
+      >
+        <mat-icon>keyboard_arrow_down</mat-icon>
+      </button>
+    </div>
+    <div class="collapse row no-gutters border-top pt-3" id="filter-collapse">
+      <mat-form-field appearance="outline" class="mr-3">
+        <mat-label>Device Type</mat-label>
+        <mat-select [(ngModel)]="device.device_type" name="device_type">
+          <mat-option
+            *ngFor="let device_type of device_type_list"
+            [value]="device_type.feature_name"
+            >{{ device_type.feature_name }}</mat-option
+          >
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="col-md-2 mr-3">
+        <mat-label>Serial Number</mat-label>
+        <input name="serial_no" matInput [(ngModel)]="device.serial_no" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="mr-3">
+        <mat-label>From Date</mat-label>
+
+        <input
+          name="fromdate"
+          matInput
+          [ngxMatDatetimePicker]="fromdate"
+          placeholder="from date"
+          [(ngModel)]="device.from_date"
+        />
+        <mat-datepicker-toggle
+          matSuffix
+          [for]="fromdate"
+        ></mat-datepicker-toggle>
+        <ngx-mat-datetime-picker #fromdate hideTime="true">
+        </ngx-mat-datetime-picker>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="mr-3">
+        <mat-label>To Date</mat-label>
+
+        <input
+          name="todate"
+          matInput
+          [ngxMatDatetimePicker]="todate"
+          placeholder="to date"
+          [(ngModel)]="device.to_date"
+        />
+        <mat-datepicker-toggle matSuffix [for]="todate"></mat-datepicker-toggle>
+        <ngx-mat-datetime-picker #todate hideTime="true">
+        </ngx-mat-datetime-picker>
+      </mat-form-field>
+      <button
+        (click)="search()"
+        mat-mini-fab
+        color="primary"
+        class="mt-1 ml-auto"
+      >
+        <mat-icon>search</mat-icon>
+      </button>
+    </div>
+
+    <div id="device-list-grid-container" class="flex-grow-1">
+      <angular-slickgrid
+        gridHeight="100%"
+        gridWidth="100%"
+        gridId="devicesGrid"
+        [columnDefinitions]="device_list_grid_column_definitions"
+        [gridOptions]="device_list_grid_options"
+        [dataset]="device_list_grid_dataset"
+        (sgOnCellChange)="
+          onDeviceListGridCellChanged(
+            $event.detail.eventData,
+            $event.detail.args
+          )
+        "
+        (onAngularGridCreated)="deviceListGridReady($event)"
+      >
+      </angular-slickgrid>
+    </div>
+  </mat-card>
+</form>

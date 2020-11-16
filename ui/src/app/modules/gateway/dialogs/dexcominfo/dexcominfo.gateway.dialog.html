@@ -1,0 +1,19 @@
+<div class="row no-gutters">
+  <div class="col-md-12 d-flex flex-row mb-4">
+    <p class="h5 text-center flex-grow-1">Dexcom({{data.serial_no}})</p>
+    <!-- <p class="h5"></p> -->
+  </div>
+
+  <div *ngFor="let attribute of attributes; let i=index;" class="col-md-6 d-flex flex-column"
+    [ngClass]="{ 'pr-2': i%2 == 0, 'pl-2' : i%2 ==1 }">
+    <mat-form-field appearance="outline">
+      <mat-label class="mat-body-strong">{{attribute.key}}</mat-label>
+      <input matInput readonly [(ngModel)]="attribute.value" />
+    </mat-form-field>
+  </div>
+  <div class="col-md-12 d-flex flex-row justify-content-end">
+    <button mat-stroked-button color="warn" (click)="close()">
+      Close
+    </button>
+  </div>
+</div>

@@ -1,0 +1,49 @@
+<div class="p-1 p-1 d-flex h-100 justify-content-center">
+<mat-card class="p-3 col-md-6 mat-elevation-z2 h-100 d-flex flex-column">
+  <div class="d-flex pb-3">
+    <p class="h5 flex-grow-1">Import Cables</p>
+    <div *ngIf="is_loading" class="mr-3">
+      <gateway-loader></gateway-loader>
+    </div>
+    <button mat-flat-button color="primary" class="mr-2" (click)="import()">
+      Import
+    </button>
+    <button mat-flat-button color="warn" class="mr-2" (click)="goBack()">
+      Cancel
+    </button>
+    <!-- <button mat-stroked-button color="warn" (click)="clear()">Clear</button> -->
+  </div>
+  <label for="fileCables">
+    <mat-form-field class="" appearance="outline">
+      <mat-label id="lblCables">Choose File</mat-label>
+      <input
+        readonly
+        matInput
+        placeholder=""
+        [(ngModel)]="cables_sheet"
+        id="txtCables"
+      />
+      <mat-icon matSuffix>cloud_upload</mat-icon>
+    </mat-form-field>
+  </label>
+  <input
+    class="d-none"
+    type="file"
+    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    (change)="onFileChange($event)"
+    id="fileCables"
+  />
+  <div id="cable-list-grid-container" class="flex-grow-1">
+    <angular-slickgrid
+      gridHeight="100%"
+      gridWidth="100%"
+      gridId="cableGrid"
+      [columnDefinitions]="cable_list_grid_column_definitions"
+      [gridOptions]="cable_list_grid_options"
+      [dataset]="cable_list_grid_dataset"
+      (onAngularGridCreated)="cableListGridReady($event)"
+    >
+    </angular-slickgrid>
+  </div>
+</mat-card>
+</div>

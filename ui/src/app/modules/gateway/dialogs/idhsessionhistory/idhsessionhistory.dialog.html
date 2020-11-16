@@ -1,0 +1,98 @@
+<div class="d-flex flex-column h-100">
+  <div class="row no-gutters">
+    <p class="h6 mr-auto mb-3">IDH Session History</p>
+    <div *ngIf="is_loading" class="ml-3">
+      <gateway-loader></gateway-loader>
+    </div>
+  </div>
+  <div class="d-flex flex-row mt-4">
+    <mat-form-field appearance="outline" class="mr-2">
+      <mat-label>Device Name</mat-label>
+      <input
+        matInput
+        placeholder="Device Name"
+        readonly
+        [(ngModel)]="data.device_name"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="mr-2">
+      <mat-label>Type</mat-label>
+      <input
+        matInput
+        placeholder="Device Type"
+        readonly
+        [(ngModel)]="data.device_type"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="">
+      <mat-label>Serial No</mat-label>
+      <input
+        matInput
+        placeholder="Serial No"
+        readonly
+        [(ngModel)]="data.serial_no"
+      />
+    </mat-form-field>
+  </div>
+  <div class="pt-3 border-top row no-gutters align-items-center">
+    <mat-form-field>
+      <mat-label>Duration</mat-label>
+      <mat-select
+        [(value)]="date_filter"
+        (selectionChange)="onDateFilterChanged()"
+      >
+        <mat-option *ngFor="let filter of date_filter_list" [value]="filter.key"
+          >{{ filter.name }}</mat-option
+        >
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field class="ml-3">
+      <input
+        matInput
+        [disabled]="date_filter != 'CUSTOM'"
+        [ngxMatDatetimePicker]="fromdate"
+        placeholder="from date"
+        [(ngModel)]="from_date"
+      />
+      <mat-datepicker-toggle matSuffix [for]="fromdate"></mat-datepicker-toggle>
+      <ngx-mat-datetime-picker #fromdate hideTime="true">
+      </ngx-mat-datetime-picker>
+    </mat-form-field>
+    <mat-form-field class="ml-3">
+      <input
+        [disabled]="date_filter != 'CUSTOM'"
+        matInput
+        [ngxMatDatetimePicker]="todate"
+        placeholder="to date"
+        [(ngModel)]="to_date"
+      />
+      <mat-datepicker-toggle matSuffix [for]="todate"></mat-datepicker-toggle>
+      <ngx-mat-datetime-picker #todate hideTime="true">
+      </ngx-mat-datetime-picker>
+    </mat-form-field>
+    <button
+      (click)="getData()"
+      mat-raised-button
+      class="ml-auto"
+      color="primary"
+    >
+      Filter
+    </button>
+  </div>
+  <div id="idh-session-history-grid-container" class="px-1 flex-grow-1">
+    <angular-slickgrid
+      gridHeight="100%"
+      gridId="idhSessionHistoryGrid"
+      [columnDefinitions]="idh_session_history_grid_column_definitions"
+      [gridOptions]="idh_session_history_grid_options"
+      [dataset]="idh_session_history_grid_dataset"
+      (onAngularGridCreated)="idhSessionHistoryListGridReady($event)"
+    >
+    </angular-slickgrid>
+  </div>
+  <div class="d-flex flex-row mt-3">
+    <button mat-stroked-button color="warn" class="ml-auto" (click)="close()">
+      Close
+    </button>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="px-1 pt-3 pb-1 h-100">
+  <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+    <div class="d-flex pb-3">
+      <p class="h5 flex-grow-1">Master Devices</p>
+      <div *ngIf="is_loading" class="mr-3">
+        <gateway-loader></gateway-loader>
+      </div>
+      <button
+        (click)="resetGrid()"
+        *ngIf="!is_loading"
+        mat-icon-button
+        color="primary"
+        class="mr-3"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        class="mr-2"
+        (click)="gotoDeviceMerge()"
+      >
+        Add
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        class="mr-2"
+        (click)="gotoImportDevices()"
+      >
+        Import
+      </button>
+      <!-- <button mat-stroked-button color="warn" (click)="clear()">Clear</button> -->
+    </div>
+    <!-- <div class="d-flex mt-2"> -->
+    <!-- <mat-form-field appearance="outline">
+        <mat-label>Name</mat-label>
+        <input matInput placeholder="Name" [(ngModel)]="cable.cable_name" />
+      </mat-form-field> -->
+    <!-- <mat-form-field appearance="outline" class="ml-3">
+          <mat-label>Description</mat-label>
+          <input matInput placeholder="Driver ID" [(ngModel)]="cable.driver_id" />
+        </mat-form-field> -->
+    <!-- </div> -->
+
+    <div id="device-list-grid-container" class="flex-grow-1">
+      <angular-slickgrid
+        gridHeight="95%"
+        gridWidth="100%"
+        gridId="deviceGrid"
+        [columnDefinitions]="device_list_grid_column_definitions"
+        [gridOptions]="device_list_grid_options"
+        [dataset]="device_list_grid_dataset"
+        (onAngularGridCreated)="deviceListGridReady($event)"
+      >
+      </angular-slickgrid>
+    </div>
+  </mat-card>
+</div>

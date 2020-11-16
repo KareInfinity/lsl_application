@@ -1,0 +1,49 @@
+<!-- <div class="p-1 p-1 h-100"> -->
+<mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+  <div class="d-flex pb-3">
+    <p class="h5 flex-grow-1">Import Devices</p>
+    <div *ngIf="is_loading" class="mr-3">
+      <gateway-loader></gateway-loader>
+    </div>
+    <button mat-flat-button color="primary" class="mr-2" (click)="import()">
+      Import
+    </button>
+    <button mat-flat-button color="warn" class="mr-2" (click)="goBack()">
+      Cancel
+    </button>
+    <!-- <button mat-stroked-button color="warn" (click)="clear()">Clear</button> -->
+  </div>
+  <label for="fileDevices">
+    <mat-form-field class="" appearance="outline">
+      <mat-label id="lblDevices">Choose File</mat-label>
+      <input
+        readonly
+        matInput
+        placeholder=""
+        [(ngModel)]="devices_sheet"
+        id="txtDevices"
+      />
+      <mat-icon matSuffix>cloud_upload</mat-icon>
+    </mat-form-field>
+  </label>
+  <input
+    class="d-none"
+    type="file"
+    accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    (change)="onFileChange($event)"
+    id="fileDevices"
+  />
+  <div id="device-list-grid-container" class="flex-grow-1">
+    <angular-slickgrid
+      gridHeight="100%"
+      gridWidth="100%"
+      gridId="deviceGrid"
+      [columnDefinitions]="device_list_grid_column_definitions"
+      [gridOptions]="device_list_grid_options"
+      [dataset]="device_list_grid_dataset"
+      (onAngularGridCreated)="deviceListGridReady($event)"
+    >
+    </angular-slickgrid>
+  </div>
+</mat-card>
+<!-- </div> -->

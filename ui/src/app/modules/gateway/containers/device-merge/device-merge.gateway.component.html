@@ -1,0 +1,113 @@
+<form
+  #addDeviceForm="ngForm"
+  class="p-1 h-100 d-flex flex-column align-items-center no-gutters"
+>
+  <mat-card class="col-md-6 mat-elevation-z2 flex-grow-1 overflow-auto">
+    <div class="d-flex px-3 pb-3">
+      <p class="h5 flex-grow-1">{{ is_edit ? "Edit" : "Add" }} Device</p>
+      <div *ngIf="is_loading" class="mr-3">
+        <gateway-loader></gateway-loader>
+      </div>
+
+      <button
+        [disabled]="is_loading"
+        (click)="save(addDeviceForm)"
+        mat-stroked-button
+        color="primary"
+        class="mr-1"
+      >
+        Save
+      </button>
+      <button mat-stroked-button color="warn" class="ml-1" (click)="close()">
+        Cancel
+      </button>
+    </div>
+
+    <ng-select
+      required
+      name="device_type"
+      class="px-3"
+      placeholder="Type"
+      [items]="device_type_list"
+      [(ngModel)]="device.device_type"
+      (ngModelChange)="onChangeDeviceType($event)"
+      bindLabel="feature_name"
+      bindValue="feature_name"
+    >
+    </ng-select>
+    <div class="bg-light row no-gutters px-3">
+      <p class="h6 py-3 col-md-12 text-muted">Basic</p>
+
+      <mat-form-field appearance="outline" class="col-md-6 pr-2">
+        <mat-label class="mat-body-strong">Name</mat-label>
+        <input name="device_name" matInput [(ngModel)]="device.device_name" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="col-md-6 pl-2">
+        <mat-label class="mat-body-strong">Serial Number</mat-label>
+        <input
+          required
+          name="serial_no"
+          matInput
+          [(ngModel)]="device.serial_no"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="col-md-6 pr-2">
+        <mat-label class="mat-body-strong">Barcode</mat-label>
+        <input name="barcode" matInput [(ngModel)]="device.barcode" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="col-md-6 pl-2">
+        <mat-label class="mat-body-strong">Hardware Version</mat-label>
+        <input
+          name="hardware_version"
+          matInput
+          [(ngModel)]="device.hardware_version"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="col-md-6 pr-2">
+        <mat-label class="mat-body-strong">Software Version</mat-label>
+        <input
+          name="software_version"
+          matInput
+          [(ngModel)]="device.software_version"
+        />
+      </mat-form-field>
+    </div>
+    <div
+      class="bg-light px-3 mt-3"
+      *ngIf="this.device.device_type == 'DexcomG6'"
+    >
+      <div class="py-3 d-flex">
+        <p class="h6 text-muted flex-grow-1">Advanced</p>
+        <button mat-stroked-button color="primary" (click)="addAttribute()">
+          Add
+        </button>
+      </div>
+      <div
+        *ngFor="let attribute of device.attributes; let i = index"
+        class="d-flex"
+      >
+        <mat-form-field appearance="outline" class="flex-grow-1 pr-2">
+          <mat-label class="mat-body-strong">label</mat-label>
+          <input
+            required
+            [name]="'label' + i"
+            matInput
+            [(ngModel)]="attribute.label"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="flex-grow-1 pl-2">
+          <mat-label class="mat-body-strong">Value</mat-label>
+          <input
+            required
+            [name]="'value' + i"
+            matInput
+            [(ngModel)]="attribute.value"
+          />
+        </mat-form-field>
+        <span (click)="deleteAttrubute(i)" class="material-icons p-3 p">
+          close
+        </span>
+      </div>
+    </div>
+  </mat-card>
+</form>

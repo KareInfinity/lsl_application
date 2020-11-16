@@ -1,0 +1,40 @@
+<div class="px-1 pt-3 pb-1 h-100">
+  <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+    <div class="d-flex align-items-center">
+      <p class="h5 flex-grow-1 pb-3">People</p>
+      <div *ngIf="is_loading" class="ml-3">
+        <gateway-loader></gateway-loader>
+      </div>
+       <button
+        (click)="resetGrid()"
+        *ngIf="!is_loading"
+        mat-icon-button
+        color="primary"
+        class="ml-3"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+    </div>
+
+    <div id="people-list-grid-container" class="mt-3 px-1 flex-grow-1">
+      <!-- gridHeight="100%" -->
+
+      <angular-slickgrid
+        gridId="peopleGrid"
+        gridHeight="95%"
+        gridWidth="100%"
+        [columnDefinitions]="people_list_grid_column_definitions"
+        [gridOptions]="people_list_grid_options"
+        [dataset]="people_list_grid_dataset"
+        (sgOnCellChange)="
+          onPeopleListGridCellChanged(
+            $event.detail.eventData,
+            $event.detail.args
+          )
+        "
+        (onAngularGridCreated)="peopleListGridReady($event)"
+      >
+      </angular-slickgrid>
+    </div>
+  </mat-card>
+</div>

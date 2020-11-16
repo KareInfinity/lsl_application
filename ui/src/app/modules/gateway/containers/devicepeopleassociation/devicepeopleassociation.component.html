@@ -1,0 +1,56 @@
+<div class="px-1 pt-3 pb-1 h-100">
+  <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+    <div class="d-flex align-items-center">
+      <p class="h5 flex-grow-1 pb-3">{{show_history ? "Association History" : "Active Associations"}}</p>
+      <div *ngIf="is_loading" class="mr-3">
+        <gateway-loader></gateway-loader>
+      </div>
+      <button
+        (click)="getData()"
+        *ngIf="!is_loading"
+        mat-icon-button
+        color="primary"
+        class="mr-3"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="openAssociatePeopleDialog()"
+        class="mr-3"
+      >
+        Add
+      </button>
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="toggleHistoryView()"
+        class="mr-3"
+      >
+        {{ show_history ? "Show Active" : "Show History" }}
+      </button>
+    </div>
+
+    <div id="association-list-grid-container" class="mt-3 px-1 flex-grow-1">
+      <!-- gridHeight="100%" -->
+
+      <angular-slickgrid
+        gridId="associationGrid"
+        gridHeight="100%"
+        gridWidth="100%"
+        [columnDefinitions]="association_list_grid_column_definitions"
+        [gridOptions]="association_list_grid_options"
+        [dataset]="association_list_grid_dataset"
+        (sgOnCellChange)="
+          onAssociationListGridCellChanged(
+            $event.detail.eventData,
+            $event.detail.args
+          )
+        "
+        (onAngularGridCreated)="associationListGridReady($event)"
+      >
+      </angular-slickgrid>
+    </div>
+  </mat-card>
+</div>

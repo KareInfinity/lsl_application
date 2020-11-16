@@ -1,0 +1,20 @@
+<div class="d-flex flex-column no-gutters">
+  <div class="row no-gutters">
+    <p class="h5 text-left mb-2 mr-auto">Lifeshield</p>
+  </div>
+  <p>{{message}}</p>
+  <div class="d-flex flex-row justify-content-end mt-3">
+    <button
+      (click)="ok()"
+      mat-stroked-button
+      color="primary"
+      class="mr-1"
+      [disabled]="is_loading"
+    >
+      Ok
+    </button>
+    <button (click)="cancel()" mat-stroked-button color="warn" class="ml-1">
+      Cancel
+    </button>
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<div class="px-1 h-100">
+  <mat-card class="mat-elevation-z2 h-100 d-flex flex-column">
+    <!-- <div *ngIf="is_loading" class="mr-3">
+        <gateway-loader></gateway-loader>
+      </div> -->
+    <div *ngIf="notification_url != null" class="h-100">
+      <iframe
+        [src]="notification_url"
+        height="100%"
+        width="100%"
+        name="notification_iframe"
+        id="notification-iframe"
+        (load)="onNotificationLoadSuccess(notification_url, $event)"
+        style="border: 0px"
+      ></iframe>
+    </div>
+  </mat-card>
+</div>

@@ -1,0 +1,39 @@
+<div class="px-1 pt-3 pb-1 h-100">
+  <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
+    <div class="d-flex">
+      <p class="h5 flex-grow-1 pb-3">Driver</p>
+      <button mat-stroked-button color="primary" (click)="Save()" class="mr-2">
+        Add/Update Driver
+      </button>
+      <button mat-stroked-button color="warn" (click)="Clear()">Clear</button>
+    </div>
+    <div class="d-flex mt-2">
+      <mat-form-field appearance="outline" class="">
+        <mat-label>Code</mat-label>
+        <input matInput placeholder="Code" [(ngModel)]="drivers.driver_code" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="ml-3">
+        <mat-label>Name</mat-label>
+        <input matInput placeholder="Name" [(ngModel)]="drivers.driver_name" />
+      </mat-form-field>
+      <!-- <mat-form-field appearance="outline" class="ml-3">
+        <mat-label>Purpose</mat-label>
+        <input matInput placeholder="Purpose" [(ngModel)]="drivers.driver_purpose" />
+      </mat-form-field> -->
+    </div>
+    <div id="driver-list-grid-container" class="flex-grow-1">
+      <angular-slickgrid
+        gridHeight="100%"
+        gridWidth="100%"
+        gridId="driverGrid"
+        [columnDefinitions]="driver_list_grid_column_definitions"
+        [gridOptions]="driver_list_grid_options"
+        [dataset]="driver_list_grid_dataset"
+        
+        (onAngularGridCreated)="driverListGridReady($event)"
+        
+      >
+      </angular-slickgrid>
+    </div>
+  </mat-card>
+</div>
