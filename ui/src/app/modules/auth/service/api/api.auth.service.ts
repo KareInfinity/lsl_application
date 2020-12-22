@@ -13,6 +13,7 @@ import { Auth } from "../../models/auth.model";
 import { ActionRes } from "src/app/modules/global/models/actionres.model";
 import { ErrorResponse } from "src/app/modules/global/models/errorres.model";
 import { StorageAuthService } from "../storage/storage.auth.service";
+import { MatDialog } from '@angular/material';
 @Injectable({
   providedIn: "root",
 })
@@ -22,7 +23,8 @@ export class ApiAuthService {
     public jwtHelper: JwtHelperService,
     public router: Router,
     private httpClient: HttpHelperAuthService,
-    private auth_storage: StorageAuthService
+    private auth_storage: StorageAuthService,
+    private dialogRef: MatDialog
   ) {}
 
   public isAuthenticated(): boolean {
@@ -33,8 +35,9 @@ export class ApiAuthService {
   }
   logout() {
     localStorage.removeItem("refresh_token");
-    localStorage.removeItem("user_data");
+    localStorage.removeItem("people_data");
     localStorage.removeItem("token");
+    this.dialogRef.closeAll();
     this.router.navigate(["/auth/login"]);
   }
   public login(request: ActionReq<Auth>) {

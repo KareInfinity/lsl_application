@@ -11,7 +11,10 @@ import {
 	DeviceBatteryValuesCriteria,
 } from "../models/devicebatteryvalues.model";
 import { DeviceNetworkValues } from "../models/devicenetworkvalues.model";
-import { IDHSessionsModel, IDHSessionsModelCriteria } from "../models/idhsessions.model";
+import {
+	IDHSessionsModel,
+	IDHSessionsModelCriteria,
+} from "../models/idhsessions.model";
 import moment from "moment";
 import { AppSettingsModel } from "../models/appsettings.model";
 import { AppSettingsService } from "./appsettings.service";
@@ -69,17 +72,17 @@ export class DeviceValuesService extends BaseService {
 					AppSettingsModel.types.LSL_PAGES
 				);
 				var page: any = _.find(settings.value.pages, (v) => {
-					return v.name == "SESSION_HISTORY";
+					return v.key == "SESSION_HISTORY";
 				});
-				switch (page.date_range) {
-					case "LAST_24_HOURS":
-						_input_req.to_date = new Date();
-						_input_req.from_date = moment(_input_req.to_date)
-							.subtract(24, "hours")
-							.toDate();
-						break;
-					default:
-						break;
+
+				if (_.has(page, "date_range.value")) {
+					_input_req.to_date = new Date();
+					_input_req.from_date = moment(_input_req.to_date)
+						.subtract(page.date_range.value, page.date_range.unit)
+						.toDate();
+				} else {
+					_input_req.to_date = new Date();
+					_input_req.from_date = new Date();
 				}
 			}
 			await using(this.db.getDisposablePool(), async (pool) => {
@@ -130,17 +133,16 @@ export class DeviceValuesService extends BaseService {
 					AppSettingsModel.types.LSL_PAGES
 				);
 				var page: any = _.find(settings.value.pages, (v) => {
-					return v.name == "DEVICE_HISTORY";
+					return v.key == "DEVICE_HISTORY";
 				});
-				switch (page.date_range) {
-					case "LAST_24_HOURS":
-						_input_req.to_date = new Date();
-						_input_req.from_date = moment(_input_req.to_date)
-							.subtract(24, "hours")
-							.toDate();
-						break;
-					default:
-						break;
+				if (_.has(page, "date_range.value")) {
+					_input_req.to_date = new Date();
+					_input_req.from_date = moment(_input_req.to_date)
+						.subtract(page.date_range.value, page.date_range.unit)
+						.toDate();
+				} else {
+					_input_req.to_date = new Date();
+					_input_req.from_date = new Date();
 				}
 			}
 			await using(this.db.getDisposablePool(), async (pool) => {
@@ -231,9 +233,7 @@ export class DeviceValuesService extends BaseService {
 	async getDeviceBatteryValuesHistory(
 		_input_req: DeviceBatteryValuesCriteria
 	) {
-		var result: Array<DeviceBatteryValues> = new Array<
-			DeviceBatteryValues
-		>();
+		var result: Array<DeviceBatteryValues> = new Array<DeviceBatteryValues>();
 		try {
 			if (_input_req.from_date == null && _input_req.to_date == null) {
 				var appsettings_service = new AppSettingsService();
@@ -241,17 +241,16 @@ export class DeviceValuesService extends BaseService {
 					AppSettingsModel.types.LSL_PAGES
 				);
 				var page: any = _.find(settings.value.pages, (v) => {
-					return v.name == "IDH_BATTERY_HISTORY";
+					return v.key == "IDH_BATTERY_HISTORY";
 				});
-				switch (page.date_range) {
-					case "LAST_24_HOURS":
-						_input_req.to_date = new Date();
-						_input_req.from_date = moment(_input_req.to_date)
-							.subtract(24, "hours")
-							.toDate();
-						break;
-					default:
-						break;
+				if (_.has(page, "date_range.value")) {
+					_input_req.to_date = new Date();
+					_input_req.from_date = moment(_input_req.to_date)
+						.subtract(page.date_range.value, page.date_range.unit)
+						.toDate();
+				} else {
+					_input_req.to_date = new Date();
+					_input_req.from_date = new Date();
 				}
 			}
 			await using(this.db.getDisposablePool(), async (pool) => {
@@ -341,9 +340,7 @@ export class DeviceValuesService extends BaseService {
 		from_date: Date,
 		to_date: Date
 	) {
-		var result: Array<DeviceNetworkValues> = new Array<
-			DeviceNetworkValues
-		>();
+		var result: Array<DeviceNetworkValues> = new Array<DeviceNetworkValues>();
 		try {
 			await using(this.db.getDisposablePool(), async (pool) => {
 				const client: ConnectionPool = await pool.connect();

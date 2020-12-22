@@ -1,19 +1,19 @@
 // custom theme palette
 $mat-icu-blue: (
-  50: #e1edf7,
-  100: #b3d3ec,
-  200: #81b5e0,
-  300: #4f97d3,
-  400: #2981c9,
-  500: #036bc0,
-  600: #0363ba,
-  700: #0258b2,
-  800: #024eaa,
-  900: #013c9c,
-  A100: #c7d8ff,
-  A200: #94b5ff,
-  A400: #6191ff,
-  A700: #477fff,
+  50: #ede7f1,
+  100: #d2c3dd,
+  200: #b49bc6,
+  300: #9572af,
+  400: #7f549e,
+  500: #68368d,
+  600: #603085,
+  700: #55297a,
+  800: #4b2270,
+  900: #3a165d,
+  A100: #c897ff,
+  A200: #ad64ff,
+  A400: #9231ff,
+  A700: #8418ff,
   contrast: (
     50: #000000,
     100: #000000,
@@ -27,9 +27,9 @@ $mat-icu-blue: (
     900: #ffffff,
     A100: #000000,
     A200: #000000,
-    A400: #000000,
-    A700: #ffffff
-  )
+    A400: #ffffff,
+    A700: #ffffff,
+  ),
 );
 $mat-icu-accent: (
   50: #fff7e7,
@@ -60,8 +60,8 @@ $mat-icu-accent: (
     A100: #000000,
     A200: #000000,
     A400: #000000,
-    A700: #ffffff
-  )
+    A700: #ffffff,
+  ),
 );
 $mat-icu-warn: (
   50: #fee8e7,
@@ -92,27 +92,82 @@ $mat-icu-warn: (
     A100: #000000,
     A200: #000000,
     A400: #000000,
-    A700: #000000
-  )
+    A700: #000000,
+  ),
 );
 @import "~@angular/material/theming";
-@include mat-core();
 // creating theme
 $primary: mat-palette($mat-icu-blue);
 $accent: mat-palette($mat-icu-accent);
 $warn: mat-palette($mat-icu-warn);
 $theme: mat-light-theme($primary, $accent, $warn);
 
-// bootstrap set up with palette
-$theme-colors: (
-  primary: mat-color($primary, default),
-  secondary: mat-color($accent, default),
-  warning: mat-color($warn)
+// apply overrides
+// Define a custom typography config that overrides the font-family as well as the
+// `headlines` and `body-1` levels.
+    $custom-typography: mat-typography-config(
+    $font-family:   'Roboto',
+    $display-4:     mat-typography-level(112px, 112px, 300),
+    $display-3:     mat-typography-level(56px, 56px, 400),
+    $display-2:     mat-typography-level(45px, 48px, 400),
+    $display-1:     mat-typography-level(34px, 40px, 400),
+    $headline:      mat-typography-level(24px, 32px, 400),
+    $title:         mat-typography-level(20px, 32px, 500),
+    $subheading-2:  mat-typography-level(16px, 28px, 400),
+    $subheading-1:  mat-typography-level(15px, 24px, 400),
+    $body-2:        mat-typography-level(12px, 20px, 500),
+    $body-1:        mat-typography-level(12px, 17px, 400),
+    $caption:       mat-typography-level(12px, 20px, 400),
+    $button:        mat-typography-level(12px, 11px, 500),
+    $input:         mat-typography-level(inherit, 1.125, 400)
 );
+
+@include mat-base-typography($custom-typography);
+
+// Override typography for a specific Angular Material components.
+@include mat-checkbox-typography($custom-typography);
+
+// Override typography for all Angular Material, including mat-base-typography and all components.
+@include angular-material-typography($custom-typography);
+
+@include mat-core($custom-typography);
+// $custom-typography: mat-typography-config(
+//   // $font-family: 'Roboto, "Helvetica Neue", sans-serif',
+//   // $display-4: mat-typography-level(112px, 112px, 300),
+//   // $display-3: mat-typography-level(56px, 56px, 400),
+//   // $display-2: mat-typography-level(45px, 48px, 400),
+//   // $display-1: mat-typography-level(34px, 40px, 400),
+//   // $headline: mat-typography-level(24px, 32px, 400),
+//   // $title: mat-typography-level(20px, 32px, 500),
+//   // $subheading-2: mat-typography-level(16px, 28px, 400),
+//   // $subheading-1: mat-typography-level(15px, 24px, 400),
+//   // $body-2: mat-typography-level(14px, 24px, 500),
+//   // $body-1: mat-typography-level(14px, 20px, 400),
+//   // $caption: mat-typography-level(12px, 20px, 400),
+//   // $button: mat-typography-level(14px, 14px, 500),
+//   // Line-height must be unit-less fraction of the font-size.
+//   $input: mat-typography-level(12px, 1.125, 400),
+// );
+// Override typography CSS classes (e.g., mat-h1, mat-display-1, mat-typography, etc.).
+// @include mat-base-typography($custom-typography);
+
+// Override typography for a specific Angular Material components.
+// @include mat-checkbox-typography($custom-typography);
+
+// Override typography for all Angular Material, including mat-base-typography and all components.
+// @include angular-material-typography($custom-typography);
+
+// Override the typography in the core CSS.
+// @include mat-core($custom-typography);
+
+@import "./variables.scss";
+@include get-variables($theme);
+@import "./custom-theme-mixin.scss";
+@include mix-app-theme($theme);
+
+// import bootstrap
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
 // applying angular material theme after bootstrap
 @include angular-material-theme($theme);
-@import "./custom-theme-mixin.scss";
-@include mix-app-theme($theme);
 @import "~@ng-select/ng-select/themes/material.theme.css";
 // @import "~@ng-select/ng-select/themes/default.theme.css";

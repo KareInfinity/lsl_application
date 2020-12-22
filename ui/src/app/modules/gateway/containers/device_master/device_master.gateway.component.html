@@ -1,18 +1,18 @@
-<div class="px-1 pt-3 pb-1 h-100">
+<div class="h-100">
   <mat-card class="p-3 mat-elevation-z2 h-100 d-flex flex-column">
     <div class="d-flex pb-3">
-      <p class="h5 flex-grow-1">Master Devices</p>
-      <div *ngIf="is_loading" class="mr-3">
+      <p class="h5 flex-grow-1">Devices</p>
+      <div *ngIf="is_loading" class="mr-3 mb-3">
         <gateway-loader></gateway-loader>
       </div>
       <button
-        (click)="resetGrid()"
+        (click)="resetGridWithCurrentFilter()"
         *ngIf="!is_loading"
         mat-icon-button
         color="primary"
         class="mr-3"
       >
-        <mat-icon>refresh</mat-icon>
+        <mat-icon class="p">refresh</mat-icon>
       </button>
       <button
         mat-stroked-button

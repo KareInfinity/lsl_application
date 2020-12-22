@@ -10,6 +10,7 @@ import AppMsgProfile, {
 	AppMsgProfileCriteria,
 } from "../models/appmsgprofile.model";
 import { ActionReq } from "../../global/models/actionreq.model";
+import { ErrorResponse } from "../../global/models/errorres.model";
 class NotificationService extends BaseService {
 	constructor() {
 		super();
@@ -51,9 +52,9 @@ class NotificationService extends BaseService {
 			var nm_url = await this.getNotificationManagerUrlFromEC();
 			var url = nm_url + this.environment.NM_API_ENDPOINTS.inbound;
 			var config = { headers };
-			var request: PluginParameter<Array<
-				NotificationMessage
-			>> = new PluginParameter<Array<NotificationMessage>>({
+			var request: PluginParameter<
+				Array<NotificationMessage>
+			> = new PluginParameter<Array<NotificationMessage>>({
 				method: "notify",
 				mode: "post",
 				source_application: "Lifeshield",
@@ -99,9 +100,13 @@ class NotificationService extends BaseService {
 						try {
 							var resp = await axios.post(url, request, config);
 							result = resp.data;
-						} catch (error) {
+						} catch (e) {
+							var error = e;
 							result = new AppMsgProfileCriteria(v);
-							result.error = JSON.stringify(error.response.data);
+							result.error = new ErrorResponse({
+								source: error,
+								item: _.get(error, "response.data", null),
+							});
 							resolve(result);
 						}
 						resolve(result);
@@ -110,7 +115,8 @@ class NotificationService extends BaseService {
 			});
 			var resp = await Promise.all(promise_list);
 			this.log(GlobalBaseService.LogLevels.info, resp);
-		} catch (error) {
+		} catch (e) {
+			var error = e;
 			this.log(GlobalBaseService.LogLevels.error, error);
 			throw error;
 		}

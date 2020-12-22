@@ -1,5 +1,9 @@
 <!-- <div class="col-12 col-md-12 p-0"> -->
-<mat-tab-group class="h-100">
+<mat-tab-group
+  class="h-100"
+  [selectedIndex]="selected_tab_index"
+  (selectedTabChange)="selectedTabChange($event)"
+>
   <mat-tab label="Devices">
     <ng-template matTabContent>
       <gateway-devicemaster></gateway-devicemaster>
@@ -8,6 +12,11 @@
   <mat-tab label="People">
     <ng-template matTabContent>
       <gateway-people></gateway-people>
+    </ng-template>
+  </mat-tab>
+  <mat-tab label="Inventory Status">
+    <ng-template matTabContent>
+      <gateway-inventory-status></gateway-inventory-status>
     </ng-template>
   </mat-tab>
 </mat-tab-group>

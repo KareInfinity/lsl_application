@@ -7,7 +7,7 @@ import { ActionRes } from "../../models/actionres.model";
 import { StorageGlobalService } from "../../service/storage/storage.global.service";
 import { Router } from "@angular/router";
 import { StorageAuthService } from "src/app/modules/auth/service/storage/storage.auth.service";
-import { User } from "src/app/modules/auth/models/user.model";
+import { PeopleModel } from "src/app/modules/gateway/models/people.model";
 
 @Component({
   selector: "global-launch",
@@ -26,11 +26,11 @@ export class LaunchGlobalComponent implements OnInit {
     this.getData();
   }
   getData() {
-    var user_data_str = localStorage.getItem("user_data");
+    var people_data_str = localStorage.getItem("people_data");
     try {
-      this.auth_storage.user = JSON.parse(user_data_str);
+      this.auth_storage.people = JSON.parse(people_data_str);
     } catch (error) {
-      this.auth_storage.user = new User();
+      this.auth_storage.people = new PeopleModel();
     }
     var request = new ActionReq<Settings>({
       item: new Settings(),

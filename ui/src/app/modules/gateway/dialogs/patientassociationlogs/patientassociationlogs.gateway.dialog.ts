@@ -16,6 +16,7 @@ import {
 } from "../../models/devicepeople.model";
 import { ActionReq } from "src/app/modules/global/models/actionreq.model";
 import { ActionRes } from "src/app/modules/global/models/actionres.model";
+import { PeopleModel } from "../../models/people.model";
 @Component({
   selector: "gateway-patientassociationlogs-dialog",
   templateUrl: "./patientassociationlogs.gateway.dialog.html",
@@ -24,7 +25,7 @@ import { ActionRes } from "src/app/modules/global/models/actionres.model";
 export class PatientAssociationLogsGatewayDialog implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<PatientAssociationLogsGatewayDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: PeopleModel,
     private service: PatientAssociationGatewayService,
     private toastr_service: ToastrService
   ) {}
@@ -59,7 +60,7 @@ export class PatientAssociationLogsGatewayDialog implements OnInit {
     this.is_loading = true;
     var request = new ActionReq<DevicePeopleModelCriteria>({
       item: new DevicePeopleModelCriteria({
-        people_id: this.data.people_id,
+        people_id: this.data.id,
       }),
     });
     this.service
@@ -76,7 +77,7 @@ export class PatientAssociationLogsGatewayDialog implements OnInit {
       )
       .add(() => {
         this.is_loading = false;
-      });;
+      });
   }
 
   setupPatientInfoListGrid() {

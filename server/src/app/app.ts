@@ -117,7 +117,8 @@ export class ExpressApp {
 					)}:${this.app.get("port")}`
 				);
 			});
-		} catch (error) {
+		} catch (e) {
+			var error = e;
 			this.global_logger.error("Failed ->", JSON.stringify(error));
 		}
 	};

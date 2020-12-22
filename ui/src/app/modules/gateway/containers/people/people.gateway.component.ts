@@ -102,9 +102,9 @@ export class PeopleGatewayComponent implements OnInit {
       //   maxWidth: 50,
       // },
       {
-        id: "people_id",
-        name: "People ID",
-        field: "people_id",
+        id: "external_id",
+        name: "People External ID",
+        field: "external_id",
         type: FieldType.string,
         sortable: true,
         minWidth: 120,
@@ -297,11 +297,7 @@ export class PeopleGatewayComponent implements OnInit {
     const alert = this.dialog.open(UserAssociationLogsGatewayDialog, {
       height: "90vh",
       width: "90vw",
-      data: {
-        user_id: args.dataContext.id,
-        user_fullname: args.dataContext.first_name,
-        user_external_id: args.dataContext.people_id,
-      },
+      data: args.dataContext,
     });
     alert.afterClosed().subscribe(() => {});
   };
@@ -309,11 +305,7 @@ export class PeopleGatewayComponent implements OnInit {
     const alert = this.dialog.open(PatientAssociationLogsGatewayDialog, {
       height: "90vh",
       width: "90vw",
-      data: {
-        people_id: args.dataContext.id,
-        people_fullname: args.dataContext.first_name,
-        people_external_id: args.dataContext.people_id,
-      },
+      data: args.dataContext,
     });
     alert.afterClosed().subscribe(() => {});
   };
@@ -331,8 +323,8 @@ export class PeopleGatewayComponent implements OnInit {
       _.get(query_object, "$filter", "")
     );
     var people = new PeopleModel();
-    if (_.has(filter_obj, "people_id")) {
-      people.people_id = filter_obj["people_id"];
+    if (_.has(filter_obj, "external_id")) {
+      people.external_id = filter_obj["external_id"];
     }
     if (_.has(filter_obj, "people_type")) {
       people.people_type = filter_obj["people_type"];

@@ -7,6 +7,9 @@
     <div *ngIf="is_loading" class="ml-3">
       <gateway-loader></gateway-loader>
     </div>
+    <span matRipple (click)="close()" class="material-icons p cursor-pointer">
+      close
+    </span>
   </div>
   <div class="d-flex flex-row mt-4">
     <mat-form-field appearance="outline" class="mr-2">

@@ -18,6 +18,19 @@ export class GatewayComponent {
   onResize(event) {
     this.identifyDevice();
   }
+  // @HostListener("window:scroll") onScroll(e: Event): void {
+  //   console.log(this.getYPosition(e));
+  // }
+  // @HostListener("scroll") onScrollHost(e: Event): void {
+  //   console.log(this.getYPosition(e));
+  // }
+  // getYPosition(e: Event): number {
+  //   return (e.target as Element).scrollTop;
+  // }
+  @HostListener("scroll", ["$event"])
+  scrollHandler(event) {
+    console.debug("Scroll Event");
+  }
   identifyDevice() {
     var width = window.innerWidth;
     if (width > 992) {

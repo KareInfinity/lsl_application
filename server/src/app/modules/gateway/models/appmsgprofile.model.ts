@@ -30,11 +30,11 @@ export default class AppMsgProfile extends Base {
 }
 
 export class AppMsgProfileCriteria extends AppMsgProfile {
-	error: string = "";
+	error: any = null;
 	constructor(init?: AppMsgProfileCriteria) {
 		super(init);
 		if (init) {
-			if (typeof init.error == "string") {
+			if (typeof init.error != null) {
 				this.error = init.error;
 			}
 		}

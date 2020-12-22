@@ -4,10 +4,18 @@ import * as _ from "lodash";
 import { ErrorResponse } from "../../global/models/errorres.model";
 import { ConnectionPool, Transaction, IResult } from "mssql";
 import * as uuid from "uuid";
-import { DeviceModel, DeviceModelCriteria } from "../models/device.model";
+import {
+	DeviceModel,
+	DeviceModelCriteria,
+	DeviceSoftwareVersion,
+	DeviceSoftwareVersionCriteria,
+} from "../models/device.model";
 import { AppSettingsService } from "./appsettings.service";
 import { AppSettingsModel } from "../models/appsettings.model";
 import moment from "moment";
+import { PeopleModel } from "../models/people.model";
+import { json_custom_parser } from "../../global/utils/jsoncustomparser";
+import { InventoryStatusModel } from "../models/inventorystatus.model";
 export class DeviceService extends BaseService {
 	constructor() {
 		super();
@@ -15,35 +23,110 @@ export class DeviceService extends BaseService {
 	}
 	environment: Environment;
 	sql_update: string = `
-	UPDATE [tblDevice]
-	SET [device_name] = @device_name,
-		[device_type] = @device_type,
-		[driver_name] = @driver_name,
-		[last_seen] = @last_seen, 
-		[hardware_version] = @hardware_version,
-		[software_version] = @software_version,
-		[communication_mode] = @communication_mode,
-		[ip_address] = @ip_address,
-		[mac_address] = @mac_address,
-		[serial_no] = @serial_no,
-		[is_disposable] = @is_disposable,
-		[barcode] = @barcode,
-		[facility] = @facility,
-		[tags] = @tags,
-		[physical_location] = @physical_location,
-		[attributes] = @attributes,
-		[is_commissioned] = @is_commissioned,
-		[created_by] = @created_by,
-		[modified_by] = @modified_by,
-		[created_on] = @created_on, 
-		[modified_on] = @modified_on, 
-		[is_active] = @is_active,
-		[is_suspended] = @is_suspended,
-		[parent_id] = @parent_id,
-		[is_factory] = @is_factory,
-		[notes] = @notes
-	OUTPUT INSERTED.*
-	WHERE [id] = @id
+	BEGIN
+
+	DECLARE @temp table ( 
+		old_inventory_status_id TINYINT,
+		new_inventory_status_id TINYINT,
+		old_software_version [varchar](32),
+		new_software_version [varchar](32)
+		);
+	DECLARE @old_inventory_status_id TINYINT = 0, @new_inventory_status_id TINYINT = 0;
+	DECLARE @old_software_version [varchar](32) = null, @new_software_version [varchar](32) = null;
+
+	UPDATE tbldevice
+	set [device_name] = @device_name
+		,[device_type] = @device_type
+		,[driver_name] = @driver_name
+		,[last_seen] = @last_seen
+		,[hardware_version] = @hardware_version
+		,[software_version] = @software_version
+		,[communication_mode] = @communication_mode
+		,[ip_address] = @ip_address
+		,[mac_address] = @mac_address
+		,[serial_no] = @serial_no
+		,[is_disposable] = @is_disposable
+		,[is_commissioned] = @is_commissioned
+		,[barcode] = @barcode
+		,[facility] = @facility
+		,[room] = @room
+		,[ward] = @ward
+		,[tags] = @tags
+		,[physical_location] = @physical_location
+		,[attributes] = @attributes
+		,[created_by] = @created_by
+		,[modified_by] = @modified_by
+		,[created_on] = @created_on
+		,[modified_on] = @modified_on
+		,[is_active] = @is_active
+		,[is_suspended] = @is_suspended
+		,[parent_id] = @parent_id
+		,[is_factory] = @is_factory
+		,[notes] = @notes
+		,[inventory_status_id] = @inventory_status_id
+	OUTPUT 
+		DELETED.inventory_status_id as old_inventory_status_id,
+		INSERTED.inventory_status_id as new_inventory_status_id,
+		DELETED.software_version as old_software_version,
+		INSERTED.software_version as new_software_version
+		into @temp
+	WHERE 
+		id = @id;
+
+	select 
+		@old_inventory_status_id = old_inventory_status_id,
+		@new_inventory_status_id = new_inventory_status_id,
+		@old_software_version = old_software_version,
+		@new_software_version = new_software_version
+	from @temp;
+
+	IF @old_inventory_status_id <> @new_inventory_status_id
+	BEGIN
+		INSERT INTO [tbldeviceinventorystatus]
+		(	[device_id]
+           ,[inventory_status_id]
+           ,[created_by]
+           ,[modified_by]
+           ,[created_on]
+           ,[modified_on]
+           ,[is_active]
+        )
+		VALUES
+        (	@id
+           ,@old_inventory_status_id
+           ,@created_by
+           ,@modified_by
+           ,@modified_on
+           ,@modified_on
+           ,1
+        )
+	END
+
+	IF @old_software_version <> @new_software_version
+	BEGIN
+		INSERT INTO [dbo].[tblDeviceSoftwareVersion]
+        (	[device_id]
+           ,[software_version]
+           ,[created_by]
+           ,[modified_by]
+           ,[created_on]
+           ,[modified_on]
+           ,[is_active]
+		)
+     	VALUES
+        (	@id
+           ,@old_software_version
+           ,@created_by
+           ,@modified_by
+           ,@modified_on
+           ,@modified_on
+           ,1
+        )
+	END
+
+	SELECT * FROM tblDevice WHERE id = @id;
+
+	END
 	`;
 	sql_save: string = `
 	INSERT INTO [tblDevice]
@@ -60,10 +143,13 @@ export class DeviceService extends BaseService {
 			,[is_disposable]
 			,[barcode]
 			,[facility]
+			,[room]
+			,[ward]
 			,[tags]
 			,[physical_location]
 			,[attributes]
 			,[is_commissioned]
+			,[inventory_status_id]
 			,[created_by]
 			,[modified_by]
 			,[created_on]
@@ -88,10 +174,13 @@ export class DeviceService extends BaseService {
 			@is_disposable,
 			@barcode,
 			@facility,
+			@room,
+			@ward,
 			@tags,
 			@physical_location,
 			@attributes,
 			@is_commissioned,
+			@inventory_status_id,
 			@created_by,
 			@modified_by,
 			@created_on, 
@@ -103,65 +192,79 @@ export class DeviceService extends BaseService {
 			@notes)
 	`;
 	sql_get: string = `
-	SELECT [id]
-		,[device_name]
-		,[device_type]
-		,[driver_name]
-		,[last_seen]
-		,[hardware_version]
-		,[software_version]
-		,[communication_mode]
-		,[ip_address]
-		,[mac_address]
-		,[serial_no]
-		,[is_disposable]
-		,[barcode]
-		,[facility]
-		,[tags]
-		,[physical_location]
-		,[attributes]
-		,[is_commissioned]
-		,[created_by]
-		,[modified_by]
-		,[created_on]
-		,[modified_on]
-		,[is_active]
-		,[is_suspended]
-		,[parent_id]
-		,[is_factory]
-		,[notes]
-	FROM [tblDevice]
+	SELECT td.[id]
+		, [td].[device_name]
+		, [td].[device_type]
+		, [td].[driver_name]
+		, [td].[last_seen]
+		, [td].[hardware_version]
+		, [td].[software_version]
+		, [td].[communication_mode]
+		, [td].[ip_address]
+		, [td].[mac_address]
+		, [td].[serial_no]
+		, [td].[is_disposable]
+		, [td].[barcode]
+		, [td].[facility]
+		, [td].[room]
+		, [td].[ward]
+		, [td].[tags]
+		, [td].[physical_location]
+		, [td].[attributes]
+		, [td].[is_commissioned]
+		, [td].[inventory_status_id]
+		, [td].[created_by]
+		, [td].[modified_by]
+		, [td].[created_on]
+		, [td].[modified_on]
+		, [td].[is_active]
+		, [td].[is_suspended]
+		, [td].[parent_id]
+		, [td].[is_factory]
+		, [td].[notes]
+		, [tis].[inventory_status_key]
+		, [tis].[inventory_status_text] 
+		, [tis].[is_factory] [inventory_status_is_factory]
+		, total_count = COUNT(*) OVER()
+	FROM [tblDevice] td
+	LEFT JOIN tblInventoryStatus tis on tis.id = td.inventory_status_id 
 	`;
 	sql_get_with_pagination: string = `
-	SELECT [id]
-		,[device_name]
-		,[device_type]
-		,[driver_name]
-		,[last_seen]
-		,[hardware_version]
-		,[software_version]
-		,[communication_mode]
-		,[ip_address]
-		,[mac_address]
-		,[serial_no]
-		,[is_disposable]
-		,[barcode]
-		,[facility]
-		,[tags]
-		,[physical_location]
-		,[attributes]
-		,[is_commissioned]
-		,[created_by]
-		,[modified_by]
-		,[created_on]
-		,[modified_on]
-		,[is_active]
-		,[is_suspended]
-		,[parent_id]
-		,[is_factory]
-		,[notes]
-		,total_count = COUNT(*) OVER()
-	FROM [tblDevice]
+	SELECT td.[id]
+		, [td].[device_name]
+		, [td].[device_type]
+		, [td].[driver_name]
+		, [td].[last_seen]
+		, [td].[hardware_version]
+		, [td].[software_version]
+		, [td].[communication_mode]
+		, [td].[ip_address]
+		, [td].[mac_address]
+		, [td].[serial_no]
+		, [td].[is_disposable]
+		, [td].[barcode]
+		, [td].[facility]
+		, [td].[room]
+		, [td].[ward]
+		, [td].[tags]
+		, [td].[physical_location]
+		, [td].[attributes]
+		, [td].[is_commissioned]
+		, [td].[inventory_status_id]
+		, [td].[created_by]
+		, [td].[modified_by]
+		, [td].[created_on]
+		, [td].[modified_on]
+		, [td].[is_active]
+		, [td].[is_suspended]
+		, [td].[parent_id]
+		, [td].[is_factory]
+		, [td].[notes]
+		, [tis].[inventory_status_key]
+		, [tis].[inventory_status_text] 
+		, total_count = COUNT(*) OVER()
+	FROM [tblDevice] td
+	LEFT JOIN tblInventoryStatus tis on tis.id = td.inventory_status_id 
 	@condition
 	order by id desc
 	offset @skip rows
@@ -182,7 +285,7 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 		device_type VARCHAR(30), last_seen DATETIME, serial_no VARCHAR(50), barcode VARCHAR(50), 
 		hardware_version varchar(32), software_version varchar(32), communication_mode varchar(32), 
 		ip_address VARCHAR(200), mac_address VARCHAR(200), idh_session_id BIGINT,
-		facility VARCHAR(20), physical_location VARCHAR(40),  attributes VARCHAR(4000),
+		facility nVARCHAR(mx), physical_location VARCHAR(40),  attributes VARCHAR(4000),
 		battery_capacity varchar(50), network_signal smallint DEFAULT 0)
 
 		DECLARE @last_data_received_dttm datetime, @query varchar(4000), @date_condition_query varchar(2000), @drill_down bit 
@@ -324,7 +427,28 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 
 		SELECT * FROM #device_view ORDER BY id DESC
 	`;
-
+	sql_get_device_software_version = `
+	SELECT [dsv].[id]
+		,[dsv].[device_id]
+		,[dsv].[idh_session_id]
+		,[dsv].[software_version]
+		,[dsv].[created_by]
+		,[dsv].[modified_by]
+		,[dsv].[created_on]
+		,[dsv].[modified_on]
+		,[dsv].[is_active]
+		,[dsv].[is_suspended]
+		,[dsv].[parent_id]
+		,[dsv].[is_factory]
+		,[dsv].[notes]
+		,[p].[external_id] [people_external_id]
+		,[p].[first_name] [people_first_name]
+	FROM [tblDeviceSoftwareVersion] [dsv]
+	LEFT JOIN [tblPeople] [p] on [p].[id] = [dsv].[created_by]
+	WHERE [dsv].[device_id] = @device_id
+	AND [dsv].[created_on] between @from_date and @to_date
+	ORDER BY [dsv].[created_on] DESC
+	`;
 	async dashboard(_device: DeviceModelCriteria) {
 		var result: Array<DeviceModel> = new Array<DeviceModel>();
 		try {
@@ -334,17 +458,16 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 					AppSettingsModel.types.LSL_PAGES
 				);
 				var page: any = _.find(settings.value.pages, (v) => {
-					return v.name == "ACTIVE_DEVICES";
+					return v.key == "ACTIVE_DEVICES";
 				});
-				switch (page.date_range) {
-					case "LAST_2_HOURS":
-						_device.to_date = new Date();
-						_device.from_date = moment(_device.to_date)
-							.subtract(2, "hours")
-							.toDate();
-						break;
-					default:
-						break;
+				if (_.has(page, "date_range.value")) {
+					_device.to_date = new Date();
+					_device.from_date = moment(_device.to_date)
+						.subtract(page.date_range.value, page.date_range.unit)
+						.toDate();
+				} else {
+					_device.to_date = new Date();
+					_device.from_date = new Date();
 				}
 			}
 			await using(this.db.getDisposablePool(), async (pool) => {
@@ -422,20 +545,22 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 		}
 		return result;
 	}
-	async get(_device: DeviceModel): Promise<Array<DeviceModel>> {
-		var result: Array<DeviceModel> = new Array<DeviceModel>();
+	async get(
+		_device: DeviceModelCriteria
+	): Promise<Array<DeviceModelCriteria>> {
+		var result: Array<DeviceModelCriteria> = new Array<DeviceModelCriteria>();
 		try {
 			await using(this.db.getDisposablePool(), async (pool) => {
 				var client = await pool.connect();
 				var qb = new this.utils.QueryBuilder(this.sql_get);
 				if (_device.device_type != "") {
-					qb.addParameter("device_type", _device.device_type, "=");
+					qb.addParameter("td.device_type", _device.device_type, "=");
 				}
 				if (_device.id > 0) {
-					qb.addParameter("id", _device.id, "=");
+					qb.addParameter("td.id", _device.id, "=");
 				}
 				if (_device.serial_no != "") {
-					qb.addParameter("serial_no", _device.serial_no, "=");
+					qb.addParameter("td.serial_no", _device.serial_no, "=");
 				}
 				var query_string = qb.getQuery();
 				var { recordset }: IResult<any> = await client.query(
@@ -443,10 +568,24 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 				);
 				if (recordset.length > 0) {
 					_.forEach(recordset, (v) => {
-						var device_temp = new DeviceModel(v);
+						var device_temp = new DeviceModelCriteria(v);
 						device_temp.id = parseInt(v.id);
 						device_temp.created_by = parseInt(v.created_by);
 						device_temp.modified_by = parseInt(v.modified_by);
+						device_temp.attributes = new DeviceModel.Attributes(
+							json_custom_parser.parse(
+								v.attributes,
+								new DeviceModel.Attributes()
+							)
+						);
+						device_temp.inventory_status = new InventoryStatusModel(
+							{
+								id: v.inventory_status_id,
+								inventory_status_key: v.inventory_status_key,
+								inventory_status_text: v.inventory_status_text,
+								is_factory: v.inventory_status_is_factory,
+							}
+						);
 						result.push(device_temp);
 					});
 				}
@@ -457,11 +596,14 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 		return result;
 	}
 	async getWithPagination(
-		_device: DeviceModel,
+		_device: DeviceModelCriteria,
 		page: number,
 		size: number
-	): Promise<{ items: Array<DeviceModel>; total_count: number }> {
-		var result: { items: Array<DeviceModel>; total_count: number } = {
+	): Promise<{ items: Array<DeviceModelCriteria>; total_count: number }> {
+		var result: {
+			items: Array<DeviceModelCriteria>;
+			total_count: number;
+		} = {
 			items: [],
 			total_count: 0,
 		};
@@ -472,21 +614,29 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 				var condition_array: Array<any> = [];
 				if (_device.device_name.trim().length > 0) {
 					condition_array.push(
-						`device_name like '%${_device.device_name}%'`
+						`[td].device_name like '%${_device.device_name}%'`
 					);
 				}
 				if (_device.device_type.trim().length > 0) {
 					condition_array.push(
-						`device_type like '%${_device.device_type}%'`
+						`[td].device_type like '%${_device.device_type}%'`
 					);
 				}
 				if (_device.serial_no.trim().length > 0) {
 					condition_array.push(
-						`serial_no like '%${_device.serial_no}%'`
+						`[td].serial_no like '%${_device.serial_no}%'`
+					);
+				}
+				if (
+					_device.inventory_status.inventory_status_key.trim()
+						.length > 0
+				) {
+					condition_array.push(
+						`[tis].inventory_status_key like '%${_device.inventory_status.inventory_status_key}%'`
 					);
 				}
 				condition_array.push(
-					`is_commissioned = '${_device.is_commissioned}'`
+					`[td].is_commissioned = '${_device.is_commissioned}'`
 				);
 				if (condition_array.length > 0) {
 					var condition_temp = condition_array.join(" and ");
@@ -504,10 +654,20 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 					.query(query);
 				if (recordset.length > 0) {
 					_.forEach(recordset, (v) => {
-						var device_temp = new DeviceModel(v);
+						var device_temp = new DeviceModelCriteria(v);
 						device_temp.id = parseInt(v.id);
 						device_temp.created_by = parseInt(v.created_by);
 						device_temp.modified_by = parseInt(v.modified_by);
+						device_temp.attributes = new DeviceModel.Attributes(
+							json_custom_parser.parse(v.attributes, null)
+						);
+						device_temp.inventory_status = new InventoryStatusModel(
+							{
+								id: v.inventory_status_id,
+								inventory_status_key: v.inventory_status_key,
+								inventory_status_text: v.inventory_status_text,
+							}
+						);
 						result.items.push(device_temp);
 					});
 					result.total_count = recordset[0].total_count;
@@ -590,9 +750,11 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 						)
 						.input(
 							"facility",
-							this.db.TYPES.VarChar,
-							_device.facility
+							this.db.TYPES.NVarChar,
+							JSON.stringify(_device.facility)
 						)
+						.input("room", this.db.TYPES.VarChar, _device.room)
+						.input("ward", this.db.TYPES.VarChar, _device.ward)
 						.input("tags", this.db.TYPES.VarChar, _device.tags)
 						.input(
 							"physical_location",
@@ -608,6 +770,11 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 							"is_commissioned",
 							this.db.TYPES.Bit,
 							_device.is_commissioned ? 1 : 0
+						)
+						.input(
+							"inventory_status_id",
+							this.db.TYPES.TinyInt,
+							_device.inventory_status_id
 						)
 						.input(
 							"created_by",
@@ -647,8 +814,17 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 						var record = result_temp.recordset[0];
 						result = new DeviceModel(record);
 						result.id = parseInt(record.id);
+						result.inventory_status_id = parseInt(
+							record.inventory_status_id
+						);
 						result.created_by = parseInt(record.created_by);
 						result.modified_by = parseInt(record.modified_by);
+						result.attributes = new DeviceModel.Attributes(
+							json_custom_parser.parse(
+								record.attributes,
+								new DeviceModel.Attributes()
+							)
+						);
 					}
 					await transaction.commit();
 				} catch (error) {
@@ -757,9 +933,11 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 						)
 						.input(
 							"facility",
-							this.db.TYPES.VarChar,
-							_device.facility
+							this.db.TYPES.NVarChar,
+							JSON.stringify(_device.facility)
 						)
+						.input("room", this.db.TYPES.VarChar, _device.room)
+						.input("ward", this.db.TYPES.VarChar, _device.ward)
 						.input("tags", this.db.TYPES.VarChar, _device.tags)
 						.input(
 							"physical_location",
@@ -775,6 +953,11 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 							"is_commissioned",
 							this.db.TYPES.Bit,
 							_device.is_commissioned ? 1 : 0
+						)
+						.input(
+							"inventory_status_id",
+							this.db.TYPES.TinyInt,
+							_device.inventory_status_id
 						)
 						.input(
 							"created_by",
@@ -794,7 +977,7 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 						.input(
 							"modified_on",
 							this.db.TYPES.DateTime,
-							_device.modified_on
+							new Date()
 						)
 						.input("is_active", this.db.TYPES.Bit, true)
 						.input(
@@ -818,8 +1001,17 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 						var record = result_temp.recordset[0];
 						result = new DeviceModel(record);
 						result.id = parseInt(record.id);
+						result.inventory_status_id = parseInt(
+							record.inventory_status_id
+						);
 						result.created_by = parseInt(record.created_by);
 						result.modified_by = parseInt(record.modified_by);
+						result.attributes = new DeviceModel.Attributes(
+							json_custom_parser.parse(
+								record.attributes,
+								new DeviceModel.Attributes()
+							)
+						);
 					}
 					await transaction.commit();
 				} catch (error) {
@@ -827,6 +1019,59 @@ IF (@p_serial_no = '') SET @p_serial_no = null
 						await transaction.rollback();
 					}
 					throw error;
+				}
+			});
+		} catch (error) {
+			throw error;
+		}
+		return result;
+	}
+	async getDeviceSoftwareVersion(
+		_req: DeviceSoftwareVersionCriteria
+	): Promise<Array<DeviceSoftwareVersionCriteria>> {
+		var result: Array<DeviceSoftwareVersionCriteria> = new Array<DeviceSoftwareVersionCriteria>();
+		try {
+			if (_req.from_date == null && _req.to_date == null) {
+				var appsettings_service = new AppSettingsService();
+				var settings: AppSettingsModel = await appsettings_service.getSettings(
+					AppSettingsModel.types.LSL_PAGES
+				);
+				var page: any = _.find(settings.value.pages, (v) => {
+					return v.key == "DEVICE_SOFTWARE_VERSION_HISTORY";
+				});
+				if (_.has(page, "date_range.value")) {
+					_req.to_date = new Date();
+					_req.from_date = moment(_req.to_date)
+						.subtract(page.date_range.value, page.date_range.unit)
+						.toDate();
+				} else {
+					_req.to_date = new Date();
+					_req.from_date = new Date();
+				}
+			}
+			await using(this.db.getDisposablePool(), async (pool) => {
+				var client = await pool.connect();
+				var { recordset }: IResult<any> = await pool
+					.getRequest(client)
+					.input("device_id", this.db.TYPES.BigInt, _req.device_id)
+					.input("from_date", this.db.TYPES.DateTime, _req.from_date)
+					.input("to_date", this.db.TYPES.DateTime, _req.to_date)
+					.query(this.sql_get_device_software_version);
+				if (recordset.length > 0) {
+					_.forEach(recordset, (v) => {
+						var temp = new DeviceSoftwareVersionCriteria(v);
+						temp.id = parseInt(v.id);
+						temp.device_id = parseInt(v.device_id);
+						temp.idh_session_id = parseInt(v.idh_session_id);
+						temp.created_by = parseInt(v.created_by);
+						temp.modified_by = parseInt(v.modified_by);
+						temp.people = new PeopleModel({
+							id: v.created_by,
+							external_id: v.people_external_id,
+							first_name: v.people_first_name,
+						});
+						result.push(temp);
+					});
 				}
 			});
 		} catch (error) {

@@ -1,7 +1,55 @@
-
-    <!-- <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
-        <i class="fa fa-bars"></i>
-    </button> -->
-<!-- <button id="sidebarToggleTop" mat-mini-fab color="primary" class="mt-3 ml-3 d-md-none">
-  <mat-icon>menu</mat-icon>
-</button> -->
+<div class="px-3 pt-3">
+  <div class="d-flex flex-row align-items-center px-3">
+    <div class="flex-grow-1 border-right border-dark">
+      <div class="d-flex flex-row align-items-center">
+        <div class="flex-grow-1 d-flex flex-row">
+          <div class="icu-logo"></div>
+          <div class="lifeshield-logo"></div>
+        </div>
+        <div
+          *ngFor="let menu of menu_list"
+          class="menu-bar-item mr-4 d-flex align-items-center justify-content-center"
+          [routerLinkActive]="['active', 'bg-white', 'rounded', 'px-3', 'py-1']"
+          [routerLinkActiveOptions]="{ exact: false }"
+          [routerLink]="menu.link"
+        >
+          <!-- <i class="fas fa-laptop-medical"></i> -->
+          <span class="text-center">{{ menu.label }}</span>
+        </div>
+        <!--  -->
+      </div>
+    </div>
+    <div
+      *ngIf="settings.auth"
+      (click)="showProfilePopup()"
+      matRipple
+      class="d-flex flex-column align-items-center ml-3 p-1 bg-dark rounded-circle"
+    >
+      <img
+        class="avatar rounded-circle mat-elevation-z2"
+        src="https://media.istockphoto.com/vectors/default-profile-picture-avatar-photo-placeholder-vector-illustration-vector-id1214428300?b=1&k=6&m=1214428300&s=612x612&w=0&h=kMXMpWVL6mkLu0TN-9MJcEUx1oSWgUq8-Ny6Wszv_ms="
+        alt="user avatar"
+      />
+      <!-- <p class="pt-2 text-primary text-center small bold-label">
+        {{ people.external_id }}
+      </p> -->
+    </div>
+    <div
+      class="ml-3 p-2 cursor-pointer d-flex justify-content-center align-items-center rounded-circle"
+      matRipple
+      data-toggle="collapse"
+      data-target="#collapse-header"
+      aria-expanded="false"
+      aria-controls="collapse-header"
+    >
+      <span class="material-icons text-white"> keyboard_arrow_down </span>
+    </div>
+  </div>
+  <div class="collapse mt-3" id="collapse-header">
+    <div class="bg-white rounded px-3 py-2 d-flex flex-row">
+      <p (click)="goToDevices()" class="pr-3 border-right border-dark cursor-pointer">All Devices - 838</p>
+      <p (click)="goToDevices(FactoryStatuses.unrecognised_device)" class="px-3 border-right border-dark cursor-pointer">Unknown Devices - 34</p>
+      <p (click)="goToDevices(FactoryStatuses.active)" class="px-3 cursor-pointer">Active Devices / Ports - 345 / 234</p>
+    </div>
+  </div>
+</div>

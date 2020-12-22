@@ -1,0 +1,49 @@
+<div class="profile-container d-flex flex-column no-gutters">
+  <span
+    matRipple
+    (click)="cancel()"
+    class="material-icons p cursor-pointer close-button m-3"
+  >
+    close
+  </span>
+  <div class="align-items-center d-flex flex-column py-3 mb-3 bg-light rounded">
+    <div
+      matRipple
+      class="d-flex flex-column align-items-center p-1 bg-primary rounded-circle"
+    >
+      <img
+        class="avatar rounded-circle mat-elevation-z2"
+        src="https://media.istockphoto.com/vectors/default-profile-picture-avatar-photo-placeholder-vector-illustration-vector-id1214428300?b=1&k=6&m=1214428300&s=612x612&w=0&h=kMXMpWVL6mkLu0TN-9MJcEUx1oSWgUq8-Ny6Wszv_ms="
+        alt="user avatar"
+      />
+    </div>
+    <p class="pt-2 text-primary text-center font-weight-bold">
+      {{ auth_storage.people.external_id }}
+    </p>
+    <div *ngIf="is_loading" class="mt-3">
+      <gateway-loader></gateway-loader>
+    </div>
+  </div>
+  <ng-select
+    appearance="outline"
+    [items]="node_list"
+    [(ngModel)]="auth_storage.people.attributes.facility_node"
+    bindLabel="Name"
+    placeholder="Facility"
+    [searchFn]="onFacilitySearch"
+    (change)="selectFacility($event)"
+  >
+    <ng-template
+      ng-option-tmp
+      let-item="item"
+      let-index="index"
+      let-search="searchTerm"
+    >
+      <div class="py-1 d-flex flex-column overflow-auto">
+        <span class="p mb-1 p-0">{{item.node_name}}</span>
+        <span class="small m-0 p-0">{{item.hierarchy_string}}</span>
+      </div>
+    </ng-template>
+  </ng-select>
+  <button mat-flat-button color="warn" (click)="logout()">Log out</button>
+</div>

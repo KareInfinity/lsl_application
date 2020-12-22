@@ -3,7 +3,11 @@ import { ActionRes } from "../../global/models/actionres.model";
 const router = express.Router();
 import * as _ from "lodash";
 import { MiscService } from "../service/misc.service";
-import { FeatureMiscModel } from "../models/misc.model";
+import {
+	ECHierarchyNode,
+	FeatureMiscModel,
+	ISASHierarchyNode,
+} from "../models/misc.model";
 import { AuthService } from "../../auth/service/auth.service";
 
 router.get("/ISASSitePermission", async (req, res, next) => {
@@ -12,7 +16,37 @@ router.get("/ISASSitePermission", async (req, res, next) => {
 		var site_info = await service.getISASSitePermission(
 			_.get(req, "body.decoded.id")
 		);
-		var result: ActionRes<any> = new ActionRes<any>({
+		var result: ActionRes<Array<ISASHierarchyNode>> = new ActionRes<
+			Array<ISASHierarchyNode>
+		>({
+			item: site_info,
+		});
+		next(result);
+	} catch (error) {
+		next(error);
+	}
+});
+router.get("/UserISASToken", async (req, res, next) => {
+	try {
+		var service = new MiscService();
+		var site_info = await service.getUserISASToken(
+			_.get(req, "body.decoded.id")
+		);
+		var result: ActionRes<string> = new ActionRes<string>({
+			item: site_info,
+		});
+		next(result);
+	} catch (error) {
+		next(error);
+	}
+});
+router.get("/ECHierarchy", async (req, res, next) => {
+	try {
+		var service = new MiscService();
+		var site_info = await service.getECHierarchy();
+		var result: ActionRes<Array<ECHierarchyNode>> = new ActionRes<
+			Array<ECHierarchyNode>
+		>({
 			item: site_info,
 		});
 		next(result);

@@ -49,7 +49,7 @@ export class Hl7Persister {
                         _people_data.is_active = true;
                         _people_data.people_type = PeopleModel.PEOPLE_TYPE.patient;
                         _people_data.people_class = _patient_class;
-                        _people_data.people_id = hl7_parsed_result.pid.patientidentifierlist.idnumber;
+                        _people_data.external_id = hl7_parsed_result.pid.patientidentifierlist.idnumber;
                         _people_data.first_name = hl7_parsed_result.pid.patientname.givenname;
                         _people_data.last_name = hl7_parsed_result.pid.patientname.familyname;
                         _people_data.gender = hl7_parsed_result.pid.administractivesex;

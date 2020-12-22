@@ -9,7 +9,6 @@ import {
 	DevicePeopleModel,
 	DevicePeopleModelCriteria,
 } from "../models/devicepeople.model";
-import { User } from "../../auth/models/user.model";
 import { DeviceModel } from "../models/device.model";
 import { notification_messages } from "../utils/notificationmessages";
 
@@ -66,20 +65,18 @@ router.post("/get", async (req, res, next) => {
 	}
 });
 
-router.get("/patients/:id?", async (req, res, next) => {
+router.post("/update", async (req, res, next) => {
 	try {
-		var _patient_identifier = _.get(req, "params.id", "");
 		var _people_service = new PeopleService();
-		var _people = await _people_service.getPeople(
+
+		var people = await _people_service.UpdatePeople(
 			new PeopleModel({
-				people_id: _patient_identifier,
-				people_type: PeopleModel.PEOPLE_TYPE.patient,
+				...req.body.item,
+				modified_by: (req.body.item as PeopleModel).id,
 			})
 		);
-		var result: ActionRes<Array<PeopleModel>> = new ActionRes<
-			Array<PeopleModel>
-		>({
-			item: _people,
+		var result: ActionRes<PeopleModel> = new ActionRes<PeopleModel>({
+			item: people,
 		});
 		next(result);
 	} catch (error) {
@@ -92,7 +89,7 @@ router.post("/associate", async (req, res, next) => {
 		var device_people = new DevicePeopleModelCriteria(req.body.item);
 
 		var is_associated = await _people_service.associate(
-			req.body.decoded as User,
+			req.body.decoded as PeopleModel,
 			device_people
 		);
 		var result: ActionRes<boolean> = new ActionRes<boolean>({
@@ -126,7 +123,7 @@ router.post("/dissociate", async (req, res, next) => {
 		var device_people = new DevicePeopleModelCriteria(req.body.item);
 
 		var is_dissociated = await _people_service.disssociate(
-			req.body.decoded as User,
+			req.body.decoded as PeopleModel,
 			device_people
 		);
 		var result: ActionRes<boolean> = new ActionRes<boolean>({
@@ -170,6 +167,7 @@ router.post("/getassociations", async (req, res, next) => {
 		next(error);
 	}
 });
+
 router.get("/patients/:id?/devices", async (req, res, next) => {
 	try {
 		var _patient_identifier = _.get(req, "params.id", "");
@@ -205,6 +203,26 @@ router.get("/patients/:id?/associateddevices", async (req, res, next) => {
 			Array<DevicePeopleModelCriteria>
 		>({
 			item: _device_people,
+		});
+		next(result);
+	} catch (error) {
+		next(error);
+	}
+});
+router.get("/patients/:id?", async (req, res, next) => {
+	try {
+		var _patient_identifier = _.get(req, "params.id", "");
+		var _people_service = new PeopleService();
+		var _people = await _people_service.getPeople(
+			new PeopleModel({
+				external_id: _patient_identifier,
+				people_type: PeopleModel.PEOPLE_TYPE.patient,
+			})
+		);
+		var result: ActionRes<Array<PeopleModel>> = new ActionRes<
+			Array<PeopleModel>
+		>({
+			item: _people,
 		});
 		next(result);
 	} catch (error) {

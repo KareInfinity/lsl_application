@@ -1,0 +1,13 @@
+@mixin get-variables($app-theme) {
+  $theme_primary: map-get($app-theme, primary);
+  $theme_accent: map-get($app-theme, accent);
+  $theme_warn: map-get($app-theme, warn);
+
+  // bootstrap set up with palette
+  $theme-colors: (
+    primary: mat-color($theme_primary, default),
+    secondary: mat-color($theme_accent, default),
+    warning: mat-color($theme_warn),
+  );
+  $font-size-base: 12px !important;
+}

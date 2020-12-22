@@ -1,0 +1,20 @@
+.settings {
+  height: 60vh;
+}
+::ng-deep .mat-dialog-container {
+  overflow: visible;
+}
+::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  line-height: unset !important;
+  min-height: 0px !important;
+}
+// /* width */
+// ::-webkit-scrollbar {
+//   width: 2px;
+//   height: 2px;
+// }
+
+// /* Track */
+// ::-webkit-scrollbar-track {
+//   background: #f1f1f1;
+// }

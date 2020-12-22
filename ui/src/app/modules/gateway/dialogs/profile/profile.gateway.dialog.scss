@@ -1,0 +1,44 @@
+.avatar {
+  object-fit: cover;
+  width: 40px;
+  height: 40px;
+}
+.profile-container {
+  position: relative;
+}
+.close-button {
+  position: absolute;
+  top: 0px;
+  right: 0px;
+}
+::ng-deep .mat-dialog-container {
+  overflow: visible;
+}
+::ng-deep .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+  line-height: unset !important;
+  min-height: 0px !important;
+}
+/* width */
+::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+
+// .ng-dropdown-panel .ng-dropdown-panel-items .ng-option {
+//     line-height: 3em;
+//     min-height: 3em;
+//     white-space: nowrap;
+//     overflow: hidden;
+//     text-overflow: ellipsis;
+//     padding: 0 16px;
+//     text-decoration: none;
+//     position: relative;
+//     color: rgba(0,0,0,0.87);
+//     text-align: left;
+// }

@@ -18,7 +18,7 @@ export class AlertGatewayDialog {
   cancel(): void {
     this.dialogRef.close(false);
   }
-  ok(form: NgForm) {
+  ok() {
     this.dialogRef.close(true);
   }
 }

@@ -16,6 +16,7 @@ export class AuthValidator extends BaseValidator {
 		} catch (error) {
 			if (typeof error == "string") {
 				throw new ErrorResponse({
+					source: error,
 					message: error,
 				});
 			}
@@ -31,6 +32,7 @@ export class AuthValidator extends BaseValidator {
 		} catch (error) {
 			if (typeof error == "string") {
 				throw new ErrorResponse({
+					source: error,
 					message: error,
 				});
 			}

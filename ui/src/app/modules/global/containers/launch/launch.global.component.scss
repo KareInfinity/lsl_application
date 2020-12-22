@@ -3,7 +3,6 @@
  */
 ::ng-deep :root {
   --loader-size: 40px;
-  --loader-color: #036bc0;
 }
 .sk-wander {
   width: var(--loader-size);
@@ -12,7 +11,7 @@
 }
 
 .sk-wander-cube {
-  background-color: var(--loader-color);
+  background-color: var(--primary);
   width: 20%;
   height: 20%;
   position: absolute;

@@ -10,6 +10,7 @@ import {
 	CableDriverMapModelCriteria,
 } from "../models/cabledrivermap.model";
 import { CableService } from "./cable.service";
+import { notification_messages } from "../utils/notificationmessages";
 export class CableDriverMapService extends BaseService {
 	sql_get: string = `
     SELECT [id]
@@ -139,12 +140,33 @@ export class CableDriverMapService extends BaseService {
 					result = _cable_driver_map;
 				} else {
 					throw new ErrorResponse({
+						source: resp,
+						code: ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE,
 						message: "Error associating cable",
+						notification: notification_messages.associate_cable_failure(
+							_cable_driver_map.cable_name,
+							"ERROR_CODE : " +
+								ErrorResponse.ErrorCodes
+									.ERROR_ON_PRECEPT_SERVICE
+						),
 					});
 				}
 			}
 		} catch (error) {
-			throw error;
+			if (error instanceof ErrorResponse) {
+				throw error;
+			} else {
+				throw new ErrorResponse({
+					source: error,
+					code: ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE,
+					message: "Error associating cable",
+					notification: notification_messages.associate_cable_failure(
+						_cable_driver_map.cable_name,
+						"ERROR_CODE : " +
+							ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE
+					),
+				});
+			}
 		}
 		return result;
 	}
@@ -260,12 +282,20 @@ export class CableDriverMapService extends BaseService {
 					cable_name: _req.cable_name,
 				})
 			);
+			var cable: CableModel = new CableModel();
 			if (cable_list.length == 0) {
-				throw new ErrorResponse({
-					message: "Cable not registered",
-				});
+				cable = await cable_service.insertCableInfo(
+					new CableModel({
+						cable_name: _req.cable_name,
+						driver_id: _req.driver_id,
+						is_active: true,
+					})
+				);
+			} else {
+				cable = cable_list[0];
 			}
-			_req.driver_id = cable_list[0].driver_id;
+			_req.cable_id = cable.id;
+			_req.driver_id = cable.driver_id;
 
 			var precept_service_resp = await this.saveOnPreceptService(_req);
 			var db_resp = await this.saveOnDB(precept_service_resp);

@@ -14,7 +14,8 @@ class Preset {
 			// await notification_service.getNotificationManagerUrlFromEC();
 			await notification_service.registerMessageProfiles();
 			logger.info(TAG + "DONE");
-		} catch (error) {
+		} catch (e) {
+			var error = e;
 			throw error;
 		}
 	}

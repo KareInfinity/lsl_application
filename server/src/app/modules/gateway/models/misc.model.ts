@@ -46,3 +46,114 @@ export class FeatureMiscModel {
 		}
 	}
 }
+export class ECHierarchyNode {
+	IsActive: boolean = false;
+	NodeID: number = 0;
+	NodeInfo: any = null;
+	NodeName: string = "";
+	NodeShortName: string = "";
+	NodeType: string = "";
+	IconUrl: string = "";
+	ParentID: number = 0;
+	PluginID: any = null;
+	PluginInfoId: any = null;
+	TypeOf: string = "";
+	Uid: string = "";
+	createdAt: Date = new Date();
+	updatedAt: Date = new Date();
+	constructor(init?: Partial<ECHierarchyNode>) {
+		if (init) {
+			if (typeof init.IsActive == "boolean") {
+				this.IsActive = init.IsActive;
+			}
+			if (typeof init.NodeID == "number") {
+				this.NodeID = init.NodeID;
+			}
+			if (init.NodeInfo) {
+				this.NodeInfo = init.NodeInfo;
+			}
+			if (typeof init.NodeName == "string") {
+				this.NodeName = init.NodeName;
+			}
+			if (typeof init.NodeShortName == "string") {
+				this.NodeShortName = init.NodeShortName;
+			}
+			if (typeof init.NodeType == "string") {
+				this.NodeType = init.NodeType;
+			}
+			if (typeof init.IconUrl == "string") {
+				this.IconUrl = init.IconUrl;
+			}
+			if (typeof init.ParentID == "number") {
+				this.ParentID = init.ParentID;
+			}
+			if (init.PluginID) {
+				this.PluginID = init.PluginID;
+			}
+			if (init.PluginInfoId) {
+				this.PluginInfoId = init.PluginInfoId;
+			}
+			if (typeof init.TypeOf == "string") {
+				this.TypeOf = init.TypeOf;
+			}
+			if (typeof init.Uid == "string") {
+				this.Uid = init.Uid;
+			}
+			if (
+				typeof init.createdAt == "string" ||
+				init.createdAt instanceof Date
+			) {
+				this.createdAt = new Date(init.createdAt);
+			}
+			if (
+				typeof init.updatedAt == "string" ||
+				init.updatedAt instanceof Date
+			) {
+				this.updatedAt = new Date(init.updatedAt);
+			}
+		}
+	}
+}
+
+export class ISASHierarchyNode {
+	Id: number = 0;
+	Name: string = "";
+	ParentId: number | null = null;
+	Uid: string = "";
+	MappedPrivileges: Array<ISASPrivilege> = [];
+	constructor(init?: Partial<ISASHierarchyNode>) {
+		if (init) {
+			if (typeof init.Id == "number") {
+				this.Id = init.Id;
+			}
+			if (typeof init.Name == "string") {
+				this.Name = init.Name;
+			}
+			if (init.ParentId) {
+				this.ParentId = init.ParentId;
+			}
+			if (typeof init.Uid == "string") {
+				this.Uid = init.Uid;
+			}
+			if (init.MappedPrivileges) {
+				_.forEach(init.MappedPrivileges, (v) => {
+					this.MappedPrivileges.push(new ISASPrivilege(v));
+				});
+			}
+		}
+	}
+}
+export class ISASPrivilege {
+	Key: string = "";
+	Name: string = "";
+	constructor(init?: Partial<ISASPrivilege>) {
+		if (init) {
+			if (typeof init.Key == "string") {
+				this.Key = init.Key;
+			}
+			if (typeof init.Name == "string") {
+				this.Name = init.Name;
+			}
+		}
+	}
+}

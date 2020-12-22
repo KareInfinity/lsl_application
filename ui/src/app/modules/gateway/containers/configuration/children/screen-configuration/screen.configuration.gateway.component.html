@@ -1,0 +1,76 @@
+<form #settingsform="ngForm" class="h-100 bg-white no-gutters">
+  <div class="p-3 row no-gutters">
+    <p class="h5 mr-auto">Screens</p>
+    <div *ngIf="is_loading" class="mr-3">
+      <gateway-loader></gateway-loader>
+    </div>
+    <button mat-raised-button color="primary" (click)="onSave(settingsform)">
+      Save
+    </button>
+  </div>
+  <div class="row no-gutters px-3">
+    <div
+      class="border p-3 col-md-4 no-gutters"
+      *ngFor="let page of settings.value.pages"
+    >
+      <p class="mb-4">{{ page.name }}</p>
+
+      <!-- <p class="mb-3 mt-3 small">Date Range</p> -->
+
+      <div class="no-gutters" *ngIf="page.date_range">
+        <mat-form-field appearance="outline" class="col-md-5 pr-3">
+          <mat-label>Date Range</mat-label>
+          <input
+            required
+            type="number"
+            [name]="page.key + 'date_range_value'"
+            matInput
+            placeholder="Value"
+            [(ngModel)]="page.date_range.value"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-md-7">
+          <mat-label>Unit</mat-label>
+          <mat-select
+            [name]="page.key + 'date_range_unit'"
+            [(ngModel)]="page.date_range.unit"
+          >
+            <mat-option
+              *ngFor="let unit of date_range_unit_list"
+              [value]="unit.ref_value_code"
+            >
+              {{ unit.ref_value_display_text }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+      <div class="no-gutters" *ngIf="page.association_duration">
+        <mat-form-field appearance="outline" class="col-md-5 pr-3">
+          <mat-label>Association Duration</mat-label>
+          <input
+            required
+            type="number"
+            [name]="page.key + 'association_duration_value'"
+            matInput
+            placeholder="Value"
+            [(ngModel)]="page.association_duration.value"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="col-md-7">
+          <mat-label>Unit</mat-label>
+          <mat-select
+            [name]="page.key + 'association_duration_unit'"
+            [(ngModel)]="page.association_duration.unit"
+          >
+            <mat-option
+              *ngFor="let unit of date_range_unit_list"
+              [value]="unit.ref_value_code"
+            >
+              {{ unit.ref_value_display_text }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+</form>

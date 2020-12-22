@@ -33,6 +33,13 @@ import { AlertGatewayDialog } from "./dialogs/alert/alert.gateway.dialog";
 import { ImportCablesGatewayComponent } from "./containers/import-cabledrivermap/import-cabledrivermap.gateway.component";
 import { DeviceLastSeenHistoryDialog } from "./dialogs/devicelastseenhistory/devicelastseenhistory.gateway.dialog";
 import { SoftwareVersionHistoryDialog } from "./dialogs/softwareversionhistory/softwareversionhistory.gateway.dialog";
+import { InventoryStatusGatewayComponent } from "./containers/inventory-status/inventory-status.gateway.component";
+import { InventoryStatusMergeGatewayComponent } from "./containers/inventory-status-merge/inventory-status-merge.gateway.component";
+import { DeviceInventoryStatusHistoryDialog } from "./dialogs/deviceinventorystatushistory/deviceinventorystatushistory.gateway.dialog";
+import { ProfileGatewayDialog } from './dialogs/profile/profile.gateway.dialog';
+import { SelectFacilityGatewayDialog } from "./dialogs/selectfacility/selectfacility.gateway.dialog";
+import { DeviceConfigurationGatewayComponent } from "./containers/configuration/children/device-configuration/device.configuration.gateway.component";
+import { ScreenConfigurationGatewayComponent } from "./containers/configuration/children/screen-configuration/screen.configuration.gateway.component";
 /* ui */
 
 @NgModule({
@@ -57,6 +64,10 @@ import { SoftwareVersionHistoryDialog } from "./dialogs/softwareversionhistory/s
     ImportDevicesGatewayComponent,
     NotificationViewerGatewayComponent,
     ImportCablesGatewayComponent,
+    InventoryStatusGatewayComponent,
+    InventoryStatusMergeGatewayComponent,
+    DeviceConfigurationGatewayComponent,
+    ScreenConfigurationGatewayComponent,
     /* Dialog */
     AssociateCableGatewayDialog,
     AssociatePeopleGatewayDialog,
@@ -70,6 +81,9 @@ import { SoftwareVersionHistoryDialog } from "./dialogs/softwareversionhistory/s
     PatientAssociationLogsGatewayDialog,
     DeviceLastSeenHistoryDialog,
     SoftwareVersionHistoryDialog,
+    DeviceInventoryStatusHistoryDialog,
+    ProfileGatewayDialog,
+    SelectFacilityGatewayDialog,
   ],
   imports: [
     /* modules */
@@ -92,6 +106,9 @@ import { SoftwareVersionHistoryDialog } from "./dialogs/softwareversionhistory/s
     AlertGatewayDialog,
     DeviceLastSeenHistoryDialog,
     SoftwareVersionHistoryDialog,
+    DeviceInventoryStatusHistoryDialog,
+    ProfileGatewayDialog,
+    SelectFacilityGatewayDialog,
   ],
 })
 export class GatewayModule {

@@ -1,4 +1,5 @@
-var base_url = "https://icumed.eazysaas.com/lifeshield";
+var base_url =
+  "http://ec2-18-224-23-211.us-east-2.compute.amazonaws.com/lifeshieldlink";
 export const environment = {
   production: true,
   base_url,

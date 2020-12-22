@@ -18,7 +18,11 @@ import { ActionReq } from "src/app/modules/global/models/actionreq.model";
 import * as moment from "moment";
 import * as _ from "lodash";
 import { DeviceMasterService } from "./device_master.gateway.service";
-import { DeviceModel } from "../../models/device.model";
+import {
+  DeviceModel,
+  DeviceModelCriteria,
+  DeviceSoftwareVersionCriteria,
+} from "../../models/device.model";
 import { Router, ActivatedRoute } from "@angular/router";
 import { Action } from "rxjs/internal/scheduler/Action";
 import { DevicePeopleModelCriteria } from "../../models/devicepeople.model";
@@ -29,6 +33,9 @@ import { SoftwareVersionHistoryDialog } from "../../dialogs/softwareversionhisto
 import { DeviceBatteryStatusHistoryDialog } from "../../dialogs/devicebatteystatushistory/devicebatterystatushistory.component";
 import { dBmToPercentageService } from "../../utils/dbmtopercentage.utils";
 import { DeviceNetworkHistoryDialog } from "../../dialogs/devicenetworkhistory/devicenetworkhistory.component";
+import { InventoryStatusModel } from "../../models/inventorystatus.model";
+import { map } from "rxjs/operators";
+import { DeviceinfoComponent } from "../../dialogs/deviceinfo/deviceinfo.component";
 @Component({
   selector: "gateway-devicemaster",
   templateUrl: "./device_master.gateway.component.html",
@@ -41,14 +48,37 @@ export class DeviceMasterGatewayComponent implements OnInit {
     private router: Router,
     public dialog: MatDialog,
     private route: ActivatedRoute,
-    private dBmToPercentageService: dBmToPercentageService
+    private dBmToPercentageService: dBmToPercentageService,
+    private activated_route: ActivatedRoute
   ) {}
 
   ngOnInit() {
-    // this.getData();
+    this.activated_route.queryParams.subscribe((params) => {
+      if (_.has(params, "inventory_status_key")) {
+        this.device.inventory_status.inventory_status_key =
+          params.inventory_status_key;
+      } else {
+        this.device.inventory_status.inventory_status_key = "";
+      }
+      if (this.is_device_grid_ready) {
+        this.device_list_angular_grid.filterService.updateFilters([
+          {
+            columnId: "is_commissioned",
+            searchTerms: ["true"],
+            operator: OperatorType.equal,
+          },
+          {
+            columnId: "inventory_status",
+            searchTerms: [this.device.inventory_status.inventory_status_key],
+            operator: OperatorType.equal,
+          },
+        ]);
+      }
+    });
     this.setupDeviceListGrid();
   }
   is_loading: boolean = false;
+
   /* slick grid */
   device_list_angular_grid: AngularGridInstance;
   device_list_grid: any;
@@ -56,19 +86,34 @@ export class DeviceMasterGatewayComponent implements OnInit {
   device_list_grid_data_view: any;
   device_list_grid_column_definitions: Column[];
   device_list_grid_options: GridOption;
-  device_list_grid_dataset: Array<DeviceDatasetModel>;
+  device_list_grid_dataset: Array<DeviceModelCriteria>;
   device_list_grid_updated_object: any;
+  is_device_grid_ready = false;
+  /* variables */
+  device: DeviceModelCriteria = new DeviceModelCriteria();
+  inventory_status_list: Array<InventoryStatusModel> = [];
+  getInventoryStatusList() {
+    return this.deviceMasterService.getInventoryStatusList().pipe(
+      map((v: ActionRes<Array<InventoryStatusModel>>) => {
+        if (_.has(v.item, "0")) {
+          v.item.unshift(
+            new InventoryStatusModel({ inventory_status_text: "All" })
+          );
+        }
+        return v.item;
+      })
+    );
+  }
   /* slick grid */
   deviceListGridReady(angularGrid: AngularGridInstance) {
     this.device_list_angular_grid = angularGrid;
     this.device_list_grid_data_view = angularGrid.dataView;
     this.device_list_grid = angularGrid.slickGrid;
     this.device_list_grid_service = angularGrid.gridService;
+    this.is_device_grid_ready = true;
   }
-  /* variables */
-  device_master: DeviceModel | any;
 
-  getData(query: string) {
+  getDeviceList(query: string) {
     console.log(query);
     var query_object: any = {};
     _.forEach(query.split("&"), (v) => {
@@ -81,7 +126,9 @@ export class DeviceMasterGatewayComponent implements OnInit {
     var filter_obj: any = this.transformFilterAsObject(
       _.get(query_object, "$filter", "")
     );
-    var device = new DeviceModel();
+    console.log({ filter_obj });
+
+    var device = new DeviceModelCriteria();
     if (_.has(filter_obj, "device_name")) {
       device.device_name = filter_obj["device_name"];
     }
@@ -91,12 +138,16 @@ export class DeviceMasterGatewayComponent implements OnInit {
     if (_.has(filter_obj, "serial_no")) {
       device.serial_no = filter_obj["serial_no"];
     }
+    if (_.has(filter_obj, "inventory_status.inventory_status_key")) {
+      device.inventory_status.inventory_status_key =
+        filter_obj["inventory_status.inventory_status_key"];
+    }
     if (_.has(filter_obj, "is_commissioned")) {
       device.is_commissioned =
         filter_obj["is_commissioned"] == "true" ? true : false;
     }
 
-    var request = new ActionReq<DeviceModel>({
+    var request = new ActionReq<DeviceModelCriteria>({
       item: device,
     });
 
@@ -122,7 +173,7 @@ export class DeviceMasterGatewayComponent implements OnInit {
     // );
   }
   transformFilterAsObject(filter: string) {
-    var sub_string_regex = /substringof\('(?<value>\w+)', (?<key>\w+)\)/;
+    var sub_string_regex = /substringof\('(?<value>[\w\.]+)', (?<key>[\w\.]+)\)/;
     var filter_array = filter.split("and");
     var filter_obj: any = {};
     _.forEach(filter_array, (v) => {
@@ -131,9 +182,9 @@ export class DeviceMasterGatewayComponent implements OnInit {
         filter_obj[extracted.groups["key"].toLowerCase()] =
           extracted.groups["value"];
     });
-    var boolean_regex = /(?<key>\w+) eq (?<value>\w+)/;
+    var option_regex = /(?<key>[\w\.]+) eq \'{0,1}(?<value>[\w\.]+)\'{0,1}/;
     _.forEach(filter_array, (v) => {
-      var extracted: any = v.match(boolean_regex);
+      var extracted: any = v.match(option_regex);
       if (extracted && extracted["groups"])
         filter_obj[extracted.groups["key"].toLowerCase()] =
           extracted.groups["value"];
@@ -168,7 +219,7 @@ export class DeviceMasterGatewayComponent implements OnInit {
         maxWidth: 50,
         onCellClick: (e, args: OnEventArgs) => {
           console.log(args.dataContext);
-          
+
           this.gotoDeviceMerge(true, args.dataContext.id);
         },
       },
@@ -192,8 +243,52 @@ export class DeviceMasterGatewayComponent implements OnInit {
         //maxWidth: 220,
         filterable: true,
         filter: { model: Filters.input },
+        onCellClick: this.showDeviceValuesPopup,
       },
+      {
+        id: "inventory_status",
+        name: "Inventory Status",
+        field: "inventory_status.inventory_status_key",
+        type: FieldType.string,
+        sortable: true,
+        minWidth: 200,
+        //maxWidth: 220,
+        // filterable: true,
+        // filter: { model: Filters.input },
+        formatter: (
+          row: number,
+          cell: number,
+          value: any,
+          columnDef: Column,
+          dataContext: any,
+          grid?: any
+        ) => {
+          var inventory_status_text = _.get(
+            dataContext,
+            "inventory_status.inventory_status_text",
+            ""
+          );
+          return inventory_status_text;
+        },
+        filterable: true,
+        filter: {
+          // We can also add HTML text to be rendered (any bad script will be sanitized) but we have to opt-in, else it will be sanitized
+          // enableRenderHtml: true,
+          // collection: [{ value: '', label: '' }, { value: true, label: 'True', labelPrefix: `<i class="fa fa-check"></i> ` }, { value: false, label: 'False' }],
 
+          collectionAsync: this.getInventoryStatusList(),
+          customStructure: {
+            value: "inventory_status_key",
+            label: "inventory_status_text",
+          },
+          model: Filters.singleSelect,
+
+          // we could add certain option(s) to the "multiple-select" plugin
+          filterOptions: {
+            autoDropWidth: true,
+          },
+        },
+      },
       {
         id: "device_type",
         name: "Type",
@@ -308,7 +403,7 @@ export class DeviceMasterGatewayComponent implements OnInit {
         onCellClick: this.showDeviceBatteryStatusHistoryPopup,
       },
       {
-        name: "network",
+        name: "Network",
         field: "network_signal",
         id: "network_signal",
         formatter: (row, cell, value, columnDef, dataContext) => {
@@ -349,11 +444,12 @@ export class DeviceMasterGatewayComponent implements OnInit {
       {
         id: "facility",
         name: "Facility",
-        field: "facility",
+        field: "facility.Name",
         sortable: false,
         minWidth: 110,
         //maxWidth: 120,
         type: FieldType.string,
+        formatter: Formatters.complexObject,
       },
     ];
     this.device_list_grid_options = {
@@ -379,6 +475,11 @@ export class DeviceMasterGatewayComponent implements OnInit {
             searchTerms: ["true"],
             operator: OperatorType.equal,
           },
+          {
+            columnId: "inventory_status",
+            searchTerms: [this.device.inventory_status.inventory_status_key],
+            operator: OperatorType.equal,
+          },
         ],
         // you can also type operator as string, e.g.: operator: 'EQ'
         pagination: { pageNumber: 1, pageSize: 20 },
@@ -392,7 +493,7 @@ export class DeviceMasterGatewayComponent implements OnInit {
         preProcess: () => {
           this.is_loading = true;
         },
-        process: (query) => this.getData(query),
+        process: (query) => this.getDeviceList(query),
         postProcess: (response) => {
           this.device_list_grid_dataset = response.item;
           this.device_list_grid_options.pagination.totalItems =
@@ -425,7 +526,7 @@ export class DeviceMasterGatewayComponent implements OnInit {
   //     (resp: any) => {
   //       if (resp.item) {
   //         this.toastr_service.success("save/update successfully");
-  //         this.getData();
+  //         this.getDeviceList();
   //       }
   //     },
   //     (error) => {
@@ -457,15 +558,16 @@ export class DeviceMasterGatewayComponent implements OnInit {
     // this.device_list_angular_grid.gridService.resetGrid();
     this.device_list_angular_grid.filterService.updateFilters(current_filters);
   }
+  resetGridWithCurrentFilter() {
+    var current_filters = this.device_list_angular_grid.filterService.getCurrentLocalFilters();
+    // this.device_list_angular_grid.gridService.resetGrid();
+    this.device_list_angular_grid.filterService.updateFilters(current_filters);
+  }
   showDeviceLastSeenHistoryPopup = (e, args: OnEventArgs) => {
     const alert = this.dialog.open(DeviceLastSeenHistoryDialog, {
       height: "90vh",
       width: "90vw",
-      data: {
-        device_name: args.dataContext.device_name,
-        device_type: args.dataContext.device_type,
-        serial_no: args.dataContext.serial_no,
-      },
+      data: args.dataContext,
     });
     alert.afterClosed().subscribe(() => {});
   };
@@ -473,11 +575,10 @@ export class DeviceMasterGatewayComponent implements OnInit {
     const alert = this.dialog.open(SoftwareVersionHistoryDialog, {
       height: "90vh",
       width: "90vw",
-      data: {
-        device_name: args.dataContext.device_name,
-        device_type: args.dataContext.device_type,
-        serial_no: args.dataContext.serial_no,
-      },
+      data: new DeviceSoftwareVersionCriteria({
+        device_id: args.dataContext.id,
+        device: args.dataContext,
+      }),
     });
     alert.afterClosed().subscribe(() => {});
   };
@@ -487,18 +588,28 @@ export class DeviceMasterGatewayComponent implements OnInit {
         height: "90vh",
         width: "90vw",
         // data: args.dataContext,
-        data: {
-          device_id: args.dataContext.id,
-          device_name: args.dataContext.device_name,
-          device_type: args.dataContext.device_type,
-          serial_no: args.dataContext.serial_no,
-        },
+        data: args.dataContext,
       });
       alert.afterClosed().subscribe(() => {});
     }
   };
   showDeviceNetworkHistoryPopup = (e, args: OnEventArgs) => {
     const alert = this.dialog.open(DeviceNetworkHistoryDialog, {
+      height: "90vh",
+      width: "90vw",
+      // data: args.dataContext,
+      data: {
+        device_id: args.dataContext.id,
+        device_name: args.dataContext.device_name,
+        device_type: args.dataContext.device_type,
+        serial_no: args.dataContext.serial_no,
+        idh_session_id: args.dataContext.idh_session_id,
+      },
+    });
+    alert.afterClosed().subscribe(() => {});
+  };
+  showDeviceValuesPopup = (e, args: OnEventArgs) => {
+    const alert = this.dialog.open(DeviceinfoComponent, {
       height: "90vh",
       width: "90vw",
       // data: args.dataContext,

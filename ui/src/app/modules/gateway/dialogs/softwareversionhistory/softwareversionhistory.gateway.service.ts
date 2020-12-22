@@ -4,6 +4,7 @@ import { environment } from "src/environments/environment";
 import { HttpHelperAuthService } from "src/app/modules/auth/service/httphelper/httphealper.auth.service";
 import { DeviceValues } from "../../models/devicevalues.model";
 import { DeviceBatteryValuesCriteria } from "../../models/devicebatteryvalues.model";
+import { DeviceSoftwareVersionCriteria } from "../../models/device.model";
 
 @Injectable({
   providedIn: "root",
@@ -13,9 +14,9 @@ export class SoftwareVersionHistoryService {
 
   constructor(private httpClient: HttpHelperAuthService) {}
 
-  getDeviceBatteryValues(request: ActionReq<DeviceBatteryValuesCriteria>) {
+  getDeviceSoftwareVersion(request: ActionReq<DeviceSoftwareVersionCriteria>) {
     return this.httpClient.post(
-      `${this.SERVER_URL}/api/devicevalues/getDeviceBatteryValuesHistory`,
+      `${this.SERVER_URL}/api/v1/devices/getDeviceSoftwareVersion`,
       request
     );
   }

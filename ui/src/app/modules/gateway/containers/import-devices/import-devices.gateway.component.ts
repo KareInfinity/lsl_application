@@ -17,6 +17,7 @@ import { ActionReq } from "src/app/modules/global/models/actionreq.model";
 import { DeviceModel, DeviceModelCriteria } from "../../models/device.model";
 import { ActionRes } from "src/app/modules/global/models/actionres.model";
 import { Location } from "@angular/common";
+import { json_custom_parser } from "src/app/modules/global/utils/jsoncustomparser";
 @Component({
   selector: "gateway-import-devices",
   templateUrl: "./import-devices.gateway.component.html",
@@ -72,14 +73,6 @@ export class ImportDevicesGatewayComponent implements OnInit {
       new DeviceModelCriteria({
         id: 1,
         device_type: DeviceModel.DeviceTypes.dexcom,
-        attributes: [
-          { label: "sample_label", value: "sample_value" },
-        ],
-      }),
-      new DeviceModelCriteria({
-        id: 2,
-        device_type: DeviceModel.DeviceTypes.iv_watch,
-        attributes: [],
       }),
     ];
     _.forEach(this.device_list_grid_dataset, (v) => {
@@ -202,11 +195,12 @@ export class ImportDevicesGatewayComponent implements OnInit {
       {
         id: "facility",
         name: "Facility",
-        field: "facility",
+        field: "facility.Name",
         sortable: false,
         minWidth: 110,
         //maxWidth: 120,
         type: FieldType.string,
+        formatter: Formatters.complexObject,
       },
       {
         id: "physical_location",
@@ -316,15 +310,22 @@ export class ImportDevicesGatewayComponent implements OnInit {
       return;
     }
     this.is_loading = true;
+    var formated = _.map(this.device_list_grid_dataset, (v) => {
+      v.attributes = json_custom_parser.parse(v.attributes, {});
+      return v;
+    });
     var request = new ActionReq<Array<DeviceModelCriteria>>({
-      item: this.device_list_grid_dataset,
+      item: formated,
     });
     this.service
       .saveBulk(request)
       .subscribe(
         (resp: ActionRes<Array<DeviceModelCriteria>>) => {
           if (_.get(resp, "item", []).length > 0) {
-            this.device_list_grid_dataset = resp.item;
+            this.device_list_grid_dataset = _.map(resp.item, (v) => {
+              v.attributes = JSON.stringify(v.attributes);
+              return v;
+            });
             var has_error = false;
             _.forEach(this.device_list_grid_dataset, (v) => {
               if (v.error != "") {

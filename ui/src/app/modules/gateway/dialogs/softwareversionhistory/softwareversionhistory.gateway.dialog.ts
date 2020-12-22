@@ -14,6 +14,12 @@ import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material";
 import { ToastrService } from "ngx-toastr";
 import { DeviceValues } from "../../models/devicevalues.model";
 import { SoftwareVersionHistoryService } from "./softwareversionhistory.gateway.service";
+import {
+  DeviceSoftwareVersion,
+  DeviceSoftwareVersionCriteria,
+} from "../../models/device.model";
+import { ActionReq } from "src/app/modules/global/models/actionreq.model";
+import { ActionRes } from "src/app/modules/global/models/actionres.model";
 
 @Component({
   selector: "app-softwareversionhistory",
@@ -23,13 +29,13 @@ import { SoftwareVersionHistoryService } from "./softwareversionhistory.gateway.
 export class SoftwareVersionHistoryDialog implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<SoftwareVersionHistoryDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: DeviceSoftwareVersionCriteria,
     private service: SoftwareVersionHistoryService,
     private toastr_service: ToastrService
   ) {}
   ngOnInit() {
     this.setupDateFilter();
-    // this.getData();
+    this.getData();
     this.setupSoftwareVersionHistoryGrid();
   }
   is_loading: boolean = false;
@@ -40,13 +46,11 @@ export class SoftwareVersionHistoryDialog implements OnInit {
   software_version_history_grid_data_view: any;
   software_version_history_grid_column_definitions: Column[];
   software_version_history_grid_options: GridOption;
-  software_version_history_grid_dataset: any;
+  software_version_history_grid_dataset: Array<DeviceSoftwareVersionCriteria>;
   software_version_history_grid_updated_object: any;
   /* slick grid */
 
   /* variable */
-  loading = true;
-  message = "Loading...";
   date_filter_list = [];
   date_filter: string = "";
   from_date: Date | null = null;
@@ -85,43 +89,34 @@ export class SoftwareVersionHistoryDialog implements OnInit {
       default:
         break;
     }
-    console.log("filter ", this.date_filter, this.from_date, this.to_date);
   }
-  // getData() {
-  //   this.is_loading = true;
-  //   var post_data = new ActionReq<DeviceBatteryValuesCriteria>({
-  //     item: new DeviceBatteryValuesCriteria({
-  //       device_id: this.data.device_id,
-  //       idh_session_id: this.data.idh_session_id,
-  //       from_date: this.from_date,
-  //       to_date: this.to_date,
-  //     }),
-  //   });
-  //   console.log("Device Battery post data", post_data);
-  //   this.service
-  //     .getDeviceBatteryValues(post_data)
-  //     .subscribe(
-  //       (resp: any) => {
-  //         if (resp.item) {
-  //           var software_version_history_list = _.map(
-  //             resp.item,
-  //             (v, k) => {
-  //               v.id = k + 1;
-  //               return new DeviceBatteryValues(v);
-  //             }
-  //           );
-  //           this.software_version_history_grid_dataset = software_version_history_list;
-  //         }
-  //       },
-  //       (err) => {
-  //         this.message = "Error";
-  //         this.toastr_service.error(err.error.error.message);
-  //       }
-  //     )
-  //     .add(() => {
-  //       this.is_loading = false;
-  //     });;
-  // }
+  getData() {
+    this.is_loading = true;
+    var post_data = new ActionReq<DeviceSoftwareVersionCriteria>({
+      item: new DeviceSoftwareVersionCriteria({
+        device_id: this.data.device_id,
+        from_date: this.from_date,
+        to_date: this.to_date,
+      }),
+    });
+    this.service
+      .getDeviceSoftwareVersion(post_data)
+      .subscribe(
+        (resp: ActionRes<Array<DeviceSoftwareVersionCriteria>>) => {
+          this.software_version_history_grid_dataset = resp.item;
+        },
+        (err) => {
+          var message = "Couldn't get date";
+          if (_.has(err, "error.message")) {
+            message = err.error.message;
+          }
+          this.toastr_service.error(message);
+        }
+      )
+      .add(() => {
+        this.is_loading = false;
+      });
+  }
 
   setupSoftwareVersionHistoryGrid() {
     this.software_version_history_grid_column_definitions = [
@@ -136,51 +131,37 @@ export class SoftwareVersionHistoryDialog implements OnInit {
       //   maxWidth: 30,
       // },
       {
-        id: "date",
+        id: "created_on",
         name: "Date",
-        field: "activation_date",
+        field: "created_on",
         type: FieldType.date,
         sortable: true,
         minWidth: 150,
-        filterable: true,
-        filter: { model: Filters.dateRange },
-        formatter: (
-          row: number,
-          cell: number,
-          value: any,
-          columnDef: Column,
-          dataContext: any,
-          grid?: any
-        ) => {
-          var date_string = "";
-          if (_.get(dataContext, "activation_date", null) != null) {
-            date_string = moment(dataContext.activation_date).format(
-              "MM-DD-YYYY H:mm:ss.SSS"
-            );
-          }
-          return date_string;
-        },
+        formatter: Formatters.dateTimeIso,
       },
+
       {
-        id: "association",
-        name: "Association",
-        field: "association",
+        id: "people_external_id",
+        name: "Created By",
+        field: "people.external_id",
         type: FieldType.string,
         minWidth: 100,
         sortable: true,
         filterable: true,
         filter: { model: Filters.input },
+        formatter: Formatters.complexObject,
       },
-      {
-        id: "location",
-        name: "Location",
-        field: "location",
-        type: FieldType.string,
-        minWidth: 100,
-        sortable: true,
-        filterable: true,
-        filter: { model: Filters.input },
-      },
+      // {
+      //   id: "people_fist_name",
+      //   name: "People Name",
+      //   field: "people.first_name",
+      //   type: FieldType.string,
+      //   minWidth: 100,
+      //   sortable: true,
+      //   filterable: true,
+      //   filter: { model: Filters.input },
+      //   formatter: Formatters.complexObject,
+      // },
       {
         id: "software_version",
         name: "Software Version",

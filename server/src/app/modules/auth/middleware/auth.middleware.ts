@@ -2,7 +2,7 @@ import * as _ from "lodash";
 import { Response } from "express";
 import { ErrorResponse } from "../../global/models/errorres.model";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model";
+import { PeopleModel } from "../../gateway/models/people.model";
 const checkToken = async (req: any, res: Response, next: any) => {
 	try {
 		const JWT_SECRET = _.get(process, "env.JWT_SECRET", "SECRET");
@@ -20,7 +20,7 @@ const checkToken = async (req: any, res: Response, next: any) => {
 						})
 					);
 				} else {
-					req.body.decoded = new User(decoded);
+					req.body.decoded = new PeopleModel(decoded);
 					next();
 				}
 			});

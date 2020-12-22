@@ -8,15 +8,16 @@ import {
 	CableDriverMapModelCriteria,
 } from "../models/cabledrivermap.model";
 import * as _ from "lodash";
+import { notification_messages } from "../utils/notificationmessages";
 const router = express.Router();
 
 router.get("/entity", async (req, res, next) => {
 	try {
-		var result: ActionRes<CableDriverMapModel> = new ActionRes<
-			CableDriverMapModel
-		>({
-			item: new CableDriverMapModel(),
-		});
+		var result: ActionRes<CableDriverMapModel> = new ActionRes<CableDriverMapModel>(
+			{
+				item: new CableDriverMapModel(),
+			}
+		);
 		next(result);
 	} catch (error) {
 		next(error);
@@ -45,11 +46,14 @@ router.post("/", async (req, res, next) => {
 		var cable_driver_map: CableDriverMapModel = await _service.save(
 			new CableDriverMapModel(req.body.item)
 		);
-		var result: ActionRes<CableDriverMapModel> = new ActionRes<
-			CableDriverMapModel
-		>({
-			item: cable_driver_map,
-		});
+		var result: ActionRes<CableDriverMapModel> = new ActionRes<CableDriverMapModel>(
+			{
+				item: cable_driver_map,
+				notification: notification_messages.associate_cable(
+					cable_driver_map.cable_name
+				),
+			}
+		);
 		next(result);
 	} catch (error) {
 		next(error);
@@ -61,9 +65,9 @@ router.post("/savebulk", async (req, res, next) => {
 		var cable_driver_map_list: Array<CableDriverMapModelCriteria> = await _service.saveBulk(
 			req.body.item
 		);
-		var result: ActionRes<Array<
-			CableDriverMapModelCriteria
-		>> = new ActionRes<Array<CableDriverMapModelCriteria>>({
+		var result: ActionRes<
+			Array<CableDriverMapModelCriteria>
+		> = new ActionRes<Array<CableDriverMapModelCriteria>>({
 			item: cable_driver_map_list,
 		});
 		next(result);

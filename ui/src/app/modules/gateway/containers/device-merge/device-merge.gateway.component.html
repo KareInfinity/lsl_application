@@ -1,9 +1,9 @@
 <form
   #addDeviceForm="ngForm"
-  class="p-1 h-100 d-flex flex-column align-items-center no-gutters"
+  class="p-1 d-flex flex-column no-gutters bg-white"
 >
-  <mat-card class="col-md-6 mat-elevation-z2 flex-grow-1 overflow-auto">
-    <div class="d-flex px-3 pb-3">
+  <div class="d-flex flex-column no-gutters">
+    <div class="d-flex p-3 pb-1">
       <p class="h5 flex-grow-1">{{ is_edit ? "Edit" : "Add" }} Device</p>
       <div *ngIf="is_loading" class="mr-3">
         <gateway-loader></gateway-loader>
@@ -22,27 +22,190 @@
         Cancel
       </button>
     </div>
+    <div class="row no-gutters">
+      <div class="col-md-4 p-3 d-flex flex-column">
+        <ng-select
+          appearance="outline"
+          required
+          name="device_type"
+          class=""
+          placeholder="Type"
+          [items]="device_type_list"
+          [(ngModel)]="device.device_type"
+          (ngModelChange)="onChangeDeviceType($event)"
+          bindLabel="feature_name"
+          bindValue="feature_name"
+        >
+        </ng-select>
+        <!-- <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Assigned Facility</mat-label>
+          <input
+            name="software_version"
+            matInput
+            [(ngModel)]="device.software_version"
+          />
+        </mat-form-field> -->
 
-    <ng-select
-      required
-      name="device_type"
-      class="px-3"
-      placeholder="Type"
-      [items]="device_type_list"
-      [(ngModel)]="device.device_type"
-      (ngModelChange)="onChangeDeviceType($event)"
-      bindLabel="feature_name"
-      bindValue="feature_name"
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Assigned Room</mat-label>
+          <input name="room" matInput [(ngModel)]="device.room" />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Assigned Ward</mat-label>
+          <input name="ward" matInput [(ngModel)]="device.ward" />
+        </mat-form-field>
+      </div>
+      <div class="col-md-4 p-3 pr-md-3 d-flex flex-column">
+        <div class="d-flex flex-row">
+          <ng-select
+            [readonly]="
+              is_edit == false || device.inventory_status.is_factory == true
+            "
+            appearance="outline"
+            required
+            name="inventory_status_id"
+            class="flex-grow-1"
+            placeholder="Inventory Status"
+            [items]="inventory_status_list"
+            [(ngModel)]="device.inventory_status_id"
+            bindLabel="inventory_status_text"
+            bindValue="id"
+            (change)="onInventoryStatusChange($event)"
+          >
+          </ng-select>
+          <button
+            *ngIf="is_edit"
+            (click)="showDeviceInventoryStatusHistoryPopup()"
+            mat-icon-button
+            color="primary"
+            class="mt-2"
+          >
+            <mat-icon class="p">info</mat-icon>
+          </button>
+        </div>
+        <!-- <div class="d-flex flex-row">
+          <mat-form-field appearance="outline" class="flex-grow-1">
+            <mat-label class="mat-body-strong">Facility</mat-label>
+            <input
+              readonly
+              name="facility"
+              matInput
+              [(ngModel)]="device.facility.Name"
+            />
+          </mat-form-field>
+          <button
+            [disabled]="is_loading"
+            (click)="showSelectFacilityPopup()"
+            mat-icon-button
+            color="primary"
+            class="mt-1"
+          >
+            <mat-icon class="p">edit</mat-icon>
+          </button>
+        </div> -->
+        <ng-select
+          appearance="outline"
+          [items]="node_list"
+          [(ngModel)]="device.facility"
+          bindLabel="Name"
+          placeholder="Facility"
+          name="facility"
+          [searchFn]="onFacilitySearch"
+          (change)="selectFacility($event)"
+        >
+          <ng-template
+            ng-option-tmp
+            let-item="item"
+            let-index="index"
+            let-search="searchTerm"
+          >
+            <div class="py-1 d-flex flex-column overflow-auto">
+              <span class="p mb-1 p-0">{{ item.node_name }}</span>
+              <span class="small m-0 p-0">{{ item.hierarchy_string }}</span>
+            </div>
+          </ng-template>
+        </ng-select>
+        <mat-form-field
+          *ngIf="device.device_type != 'IDH'"
+          appearance="outline"
+          class=""
+        >
+          <mat-label class="mat-body-strong"
+            >Reported by Lifeshield Port</mat-label
+          >
+          <input
+            name="software_version"
+            matInput
+            [(ngModel)]="device.software_version"
+          />
+        </mat-form-field>
+      </div>
+      <div
+        *ngIf="device.device_type != ''"
+        class="col-md-4 d-flex flex-column justify-content-center align-items-center"
+      >
+        <img
+          style="object-fit: contain"
+          [src]="device_images[device.device_type]"
+          width="150"
+          height="150"
+        />
+      </div>
+    </div>
+  </div>
+  <div class="row no-gutters">
+    <div
+      class="col-md-4 p-3 d-flex flex-column border settings"
+      *ngIf="is_edit"
     >
-    </ng-select>
-    <div class="bg-light row no-gutters px-3">
-      <p class="h6 py-3 col-md-12 text-muted">Basic</p>
+      <div class="d-flex flex-row align-items-center pb-3">
+        <p class="h6 text-muted">Associated People</p>
+        <button
+          *ngIf="is_edit"
+          (click)="showDeviceAssociationHistoryPopup()"
+          mat-icon-button
+          color="primary"
+          class=""
+        >
+          <mat-icon class="p">info</mat-icon>
+        </button>
+        <button
+          (click)="showAssociatePopup()"
+          *ngIf="is_edit"
+          mat-icon-button
+          color="primary"
+          class=""
+        >
+          <mat-icon class="p">add_circle</mat-icon>
+        </button>
+      </div>
 
-      <mat-form-field appearance="outline" class="col-md-6 pr-2">
+      <mat-form-field appearance="outline" class="">
+        <mat-label class="mat-body-strong">Patient</mat-label>
+        <input
+          readonly
+          name="people_fullname"
+          matInput
+          [(ngModel)]="device.device_people.people_fullname"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="">
+        <mat-label class="mat-body-strong">Clinician</mat-label>
+        <input
+          readonly
+          name="user_external_id"
+          matInput
+          [(ngModel)]="device.device_people.user_external_id"
+        />
+      </mat-form-field>
+    </div>
+    <div class="col-md-4 p-3 d-flex flex-column border settings">
+      <p class="h6 text-muted pb-3">Common Device Settings</p>
+      <mat-form-field appearance="outline" class="">
         <mat-label class="mat-body-strong">Name</mat-label>
         <input name="device_name" matInput [(ngModel)]="device.device_name" />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="col-md-6 pl-2">
+      <mat-form-field appearance="outline" class="">
         <mat-label class="mat-body-strong">Serial Number</mat-label>
         <input
           required
@@ -51,11 +214,11 @@
           [(ngModel)]="device.serial_no"
         />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="col-md-6 pr-2">
+      <mat-form-field appearance="outline" class="">
         <mat-label class="mat-body-strong">Barcode</mat-label>
         <input name="barcode" matInput [(ngModel)]="device.barcode" />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="col-md-6 pl-2">
+      <mat-form-field appearance="outline" class="">
         <mat-label class="mat-body-strong">Hardware Version</mat-label>
         <input
           name="hardware_version"
@@ -63,51 +226,310 @@
           [(ngModel)]="device.hardware_version"
         />
       </mat-form-field>
-      <mat-form-field appearance="outline" class="col-md-6 pr-2">
-        <mat-label class="mat-body-strong">Software Version</mat-label>
-        <input
-          name="software_version"
-          matInput
-          [(ngModel)]="device.software_version"
-        />
-      </mat-form-field>
-    </div>
-    <div
-      class="bg-light px-3 mt-3"
-      *ngIf="this.device.device_type == 'DexcomG6'"
-    >
-      <div class="py-3 d-flex">
-        <p class="h6 text-muted flex-grow-1">Advanced</p>
-        <button mat-stroked-button color="primary" (click)="addAttribute()">
-          Add
+      <div class="d-flex flex-row">
+        <mat-form-field appearance="outline" class="flex-grow-1">
+          <mat-label class="mat-body-strong">Software Version</mat-label>
+          <input
+            name="software_version"
+            matInput
+            [(ngModel)]="device.software_version"
+          /> </mat-form-field
+        ><button
+          *ngIf="is_edit"
+          (click)="showSoftwareVersionHistoryPopup()"
+          mat-icon-button
+          color="primary"
+          class="mt-1"
+        >
+          <mat-icon class="p">info</mat-icon>
         </button>
       </div>
-      <div
-        *ngFor="let attribute of device.attributes; let i = index"
-        class="d-flex"
+    </div>
+    <div class="col-md-4 p-3 d-flex flex-column border settings">
+      <p class="h6 text-muted pb-3">Device Status</p>
+      <div class="d-flex flex-row">
+        <mat-form-field appearance="outline" class="flex-grow-1">
+          <mat-label class="mat-body-strong">Device Last Seen</mat-label>
+          <input
+            disabled
+            name="last_seen"
+            matInput
+            [(ngModel)]="device.last_seen"
+          />
+        </mat-form-field>
+        <button
+          *ngIf="is_edit"
+          (click)="showDeviceLastSeenHistoryPopup()"
+          mat-icon-button
+          color="primary"
+          class="mt-1"
+        >
+          <mat-icon class="p">info</mat-icon>
+        </button>
+      </div>
+
+      <div class="d-flex flex-row">
+        <mat-form-field appearance="outline" class="flex-grow-1">
+          <mat-label class="mat-body-strong">Device Battery Level</mat-label>
+          <input
+            disabled
+            name="device_battery"
+            matInput
+            [(ngModel)]="device.battery_capacity"
+          />
+        </mat-form-field>
+        <button
+          *ngIf="is_edit"
+          (click)="showDeviceBatteryStatusHistoryPopup()"
+          mat-icon-button
+          color="primary"
+          class="mt-1"
+        >
+          <mat-icon class="p">info</mat-icon>
+        </button>
+      </div>
+      <mat-form-field
+        appearance="outline"
+        class=""
+        *ngIf="device.device_type != 'IV Watch'; else serialdeviceinfo"
       >
-        <mat-form-field appearance="outline" class="flex-grow-1 pr-2">
-          <mat-label class="mat-body-strong">label</mat-label>
+        <mat-label class="mat-body-strong"
+          >Device Wifi / BLE Connection Strength</mat-label
+        >
+        <input
+          disabled
+          name="device_wifi"
+          matInput
+          [(ngModel)]="device.network_signal"
+        />
+      </mat-form-field>
+      <ng-template #serialdeviceinfo>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">This is serial device</mat-label>
+          <input disabled name="device_wifi" matInput />
+        </mat-form-field>
+      </ng-template>
+    </div>
+    <div class="col-md-4 py-3 d-flex flex-column border">
+      <div class="px-3 pb-3 d-flex">
+        <p class="h6 text-muted flex-grow-1">Device Specific Settings</p>
+        <!-- <button
+            *ngIf="device.device_type == 'DexcomG6'"
+            mat-stroked-button
+            color="primary"
+            (click)="addAttribute()"
+          >
+            Add
+          </button> -->
+      </div>
+      <div class="px-3" *ngIf="device.device_type != 'DexcomG6'">
+        <span class="text-center text-info">Not applicable</span>
+      </div>
+      <div
+        *ngIf="device.device_type == 'DexcomG6'"
+        class="px-3 py-1 overflow-auto d-flex flex-column settings"
+      >
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Transmitter Status Code</mat-label>
           <input
-            required
-            [name]="'label' + i"
+            [readonly]="is_edit"
+            name="tx_status"
             matInput
-            [(ngModel)]="attribute.label"
+            [(ngModel)]="device.attributes.tx_status"
           />
         </mat-form-field>
-        <mat-form-field appearance="outline" class="flex-grow-1 pl-2">
-          <mat-label class="mat-body-strong">Value</mat-label>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Error Code</mat-label>
           <input
-            required
-            [name]="'value' + i"
+            [readonly]="is_edit"
+            name="error_code"
             matInput
-            [(ngModel)]="attribute.value"
+            [(ngModel)]="device.attributes.error_code"
           />
         </mat-form-field>
-        <span (click)="deleteAttrubute(i)" class="material-icons p-3 p">
-          close
-        </span>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">CGM Firmware Version</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="cgm_firmware"
+            matInput
+            [(ngModel)]="device.attributes.cgm_firmware"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">BLE Firmware Version</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="ble_firmware_ver"
+            matInput
+            [(ngModel)]="device.attributes.ble_firmware_ver"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Hardware Version</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="hw_version"
+            matInput
+            [(ngModel)]="device.attributes.hw_version"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">BLE Soft Device Version</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="ble_sw_version"
+            matInput
+            [(ngModel)]="device.attributes.ble_sw_version"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong"
+            >Hardware ID of the Nordic BLE Chip</mat-label
+          >
+          <input
+            [readonly]="is_edit"
+            name="hw_id"
+            matInput
+            [(ngModel)]="device.attributes.hw_id"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Transmitter Run Time</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="tx_run_time"
+            matInput
+            [(ngModel)]="device.attributes.tx_run_time"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Algorithm State</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="algorithm_state"
+            matInput
+            [(ngModel)]="device.attributes.algorithm_state"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Transmitter Version</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="tx_version"
+            matInput
+            [(ngModel)]="device.attributes.tx_version"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Software Number</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="sw_number"
+            matInput
+            [(ngModel)]="device.attributes.sw_number"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">API Version</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="api_version"
+            matInput
+            [(ngModel)]="device.attributes.api_version"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">RSSI</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="RSSI"
+            matInput
+            [(ngModel)]="device.attributes.RSSI"
+          />
+        </mat-form-field>
+        <mat-form-field appearance="outline" class="">
+          <mat-label class="mat-body-strong">Broadcast ID</mat-label>
+          <input
+            [readonly]="is_edit"
+            name="broadcastID"
+            matInput
+            [(ngModel)]="device.attributes.broadcastID"
+          />
+        </mat-form-field>
       </div>
     </div>
-  </mat-card>
+  </div>
+
+  <!-- <div class="bg-light row no-gutters px-3">
+    <p class="h6 py-3 col-md-12 text-muted">Basic</p>
+
+    <mat-form-field appearance="outline" class="col-md-6 pr-2">
+      <mat-label class="mat-body-strong">Name</mat-label>
+      <input name="device_name" matInput [(ngModel)]="device.device_name" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="col-md-6 pl-2">
+      <mat-label class="mat-body-strong">Serial Number</mat-label>
+      <input
+        required
+        name="serial_no"
+        matInput
+        [(ngModel)]="device.serial_no"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="col-md-6 pr-2">
+      <mat-label class="mat-body-strong">Barcode</mat-label>
+      <input name="barcode" matInput [(ngModel)]="device.barcode" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="col-md-6 pl-2">
+      <mat-label class="mat-body-strong">Hardware Version</mat-label>
+      <input
+        name="hardware_version"
+        matInput
+        [(ngModel)]="device.hardware_version"
+      />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="col-md-6 pr-2">
+      <mat-label class="mat-body-strong">Software Version</mat-label>
+      <input
+        name="software_version"
+        matInput
+        [(ngModel)]="device.software_version"
+      />
+    </mat-form-field>
+  </div>
+  <div class="bg-light px-3 mt-3" *ngIf="this.device.device_type == 'DexcomG6'">
+    <div class="py-3 d-flex">
+      <p class="h6 text-muted flex-grow-1">Advanced</p>
+      <button mat-stroked-button color="primary" (click)="addAttribute()">
+        Add
+      </button>
+    </div>
+    <div
+      *ngFor="let attribute of device.attributes; let i = index"
+      class="d-flex"
+    >
+      <mat-form-field appearance="outline" class="flex-grow-1 pr-2">
+        <mat-label class="mat-body-strong">label</mat-label>
+        <input
+          required
+          [name]="'label' + i"
+          matInput
+          [(ngModel)]="attribute.label"
+        />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="flex-grow-1 pl-2">
+        <mat-label class="mat-body-strong">Value</mat-label>
+        <input
+          required
+          [name]="'value' + i"
+          matInput
+          [(ngModel)]="attribute.value"
+        />
+      </mat-form-field>
+      <span (click)="deleteAttrubute(i)" class="material-icons p-3 p">
+        close
+      </span>
+    </div>
+  </div> -->
 </form>

@@ -7,7 +7,7 @@ class ErrorResponse<T> extends Base {
 	item?: any;
 	code: ErrorResponse.ErrorCodes = ErrorResponse.ErrorCodes.BAD_REQUEST;
 	notification?: NotificationMessage;
-
+	source: any = null;
 	constructor(init?: Partial<ErrorResponse<T>>) {
 		super(init);
 		if (init) {
@@ -20,18 +20,24 @@ class ErrorResponse<T> extends Base {
 			if (_.get(init, "notification", null) != null) {
 				this.notification = init.notification;
 			}
+			if (init.source != null) {
+				this.source = init.source;
+			}
 		}
 	}
 }
 module ErrorResponse {
 	export enum ErrorCodes {
-		BAD_REQUEST,
-		DEVICE_NOT_FOUND,
-		CABLE_NOT_FOUND,
-		DEVICE_TYPE_INVALID,
-		DRIVER_NOT_FOUND,
-		DEVICE_ALREADY_ASSOCIATED,
-		DEVICE_IS_NOT_ASSOCIATED
+		BAD_REQUEST = 1000,
+		DEVICE_NOT_FOUND = 1001,
+		CABLE_NOT_FOUND = 1002,
+		DEVICE_TYPE_INVALID = 1003,
+		DRIVER_NOT_FOUND = 1004,
+		DEVICE_ALREADY_ASSOCIATED = 1005,
+		DEVICE_IS_NOT_ASSOCIATED = 1006,
+		INVENTORY_STATUS_REVIVED = 1007,
+		INVENTORY_STATUS_ALREADY_EXISTS = 1008,
+		ERROR_ON_PRECEPT_SERVICE = 1009
 	}
 }
 

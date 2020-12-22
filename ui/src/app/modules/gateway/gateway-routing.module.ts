@@ -10,7 +10,12 @@ import { MastersGatewayComponent } from "./containers/masters/masters.gateway.co
 import { DeviceMergeGatewayComponent } from "./containers/device-merge/device-merge.gateway.component";
 import { ImportDevicesGatewayComponent } from "./containers/import-devices/import-devices.gateway.component";
 import { NotificationViewerGatewayComponent } from "./containers/notificationviewer/notificationviewer.gateway.component";
-import { ImportCablesGatewayComponent } from './containers/import-cabledrivermap/import-cabledrivermap.gateway.component';
+import { ImportCablesGatewayComponent } from "./containers/import-cabledrivermap/import-cabledrivermap.gateway.component";
+import { InventoryStatusMergeGatewayComponent } from "./containers/inventory-status-merge/inventory-status-merge.gateway.component";
+import { PeopleGatewayComponent } from "./containers/people/people.gateway.component";
+import { InventoryStatusGatewayComponent } from "./containers/inventory-status/inventory-status.gateway.component";
+import { DeviceConfigurationGatewayComponent } from "./containers/configuration/children/device-configuration/device.configuration.gateway.component";
+import { ScreenConfigurationGatewayComponent } from "./containers/configuration/children/screen-configuration/screen.configuration.gateway.component";
 const gateway_routes: Routes = [
   {
     path: "",
@@ -18,8 +23,23 @@ const gateway_routes: Routes = [
     children: [
       {
         path: "",
-        redirectTo: "master",
+        redirectTo: "devices",
         pathMatch: "full",
+      },
+      {
+        path: "devices",
+        component: DeviceMasterGatewayComponent,
+        canActivate: [UserAuthGuard],
+      },
+      {
+        path: "people",
+        component: PeopleGatewayComponent,
+        canActivate: [UserAuthGuard],
+      },
+      {
+        path: "inventorystatus",
+        component: InventoryStatusGatewayComponent,
+        canActivate: [UserAuthGuard],
       },
       {
         path: "master",
@@ -27,13 +47,18 @@ const gateway_routes: Routes = [
         canActivate: [UserAuthGuard],
       },
       {
-        path: "master/device-merge",
+        path: "devices/device-merge",
         component: DeviceMergeGatewayComponent,
         canActivate: [UserAuthGuard],
       },
       {
-        path: "master/import-devices",
+        path: "devices/import-devices",
         component: ImportDevicesGatewayComponent,
+        canActivate: [UserAuthGuard],
+      },
+      {
+        path: "inventorystatus/inventory-status-merge",
+        component: InventoryStatusMergeGatewayComponent,
         canActivate: [UserAuthGuard],
       },
       {
@@ -45,6 +70,23 @@ const gateway_routes: Routes = [
         path: "configuration",
         component: ConfigurationGatewayComponent,
         canActivate: [UserAuthGuard],
+        children: [
+          {
+            path: "",
+            redirectTo: "device",
+            pathMatch: "full",
+          },
+          {
+            path: "device",
+            component: DeviceConfigurationGatewayComponent,
+            canActivate: [UserAuthGuard],
+          },
+          {
+            path: "screen",
+            component: ScreenConfigurationGatewayComponent,
+            canActivate: [UserAuthGuard],
+          },
+        ],
       },
       {
         path: "configuration/import-cables",

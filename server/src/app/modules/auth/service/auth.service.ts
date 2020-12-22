@@ -6,19 +6,24 @@ import axios from "axios";
 import crypto, { WordArray } from "crypto-js";
 import moment from "moment";
 import { Auth } from "../models/auth.model";
-import { User } from "../models/user.model";
 import { UserSessionService } from "./usersession.service";
 import { UserSession } from "../models/usersession.model";
 import jwt from "jsonwebtoken";
 import { ECResponse, GetPluginInfoViaEC } from "../models/misc.model";
+import { PeopleModel } from "../../gateway/models/people.model";
+import { PeopleService } from "../../gateway/service/people.service";
 export class AuthService extends BaseService {
 	JWT_SECRET = _.get(process, "env.JWT_SECRET", "SECRET");
-	getToken(user: User, expiration_date: Date) {
+	getToken(people: PeopleModel, expiration_date: Date) {
 		var token = "";
 		try {
 			var expiresIn = moment(expiration_date).diff(moment(), "s");
 			token = jwt.sign(
-				{ id: user.id, name: user.name },
+				{
+					id: people.id,
+					external_id: people.external_id,
+					name: people.first_name,
+				},
 				this.JWT_SECRET,
 				{
 					expiresIn,
@@ -60,9 +65,7 @@ export class AuthService extends BaseService {
 		return token;
 	}
 	getPluginInfoViaEC = async (plugin_name: string) => {
-		let result: ECResponse<GetPluginInfoViaEC> = new ECResponse<
-			GetPluginInfoViaEC
-		>();
+		let result: ECResponse<GetPluginInfoViaEC> = new ECResponse<GetPluginInfoViaEC>();
 		try {
 			var config = {
 				headers: {
@@ -84,6 +87,7 @@ export class AuthService extends BaseService {
 		} catch (error) {
 			if (_.get(error, "isAxiosError", false))
 				throw new ErrorResponse({
+					source: error,
 					item: _.get(error, "response.data", null),
 				});
 			else {
@@ -106,7 +110,8 @@ export class AuthService extends BaseService {
 
 				result = this.environment.ISAS_URL;
 			}
-		} catch (error) {
+		} catch (e) {
+			var error = e;
 			throw error;
 		}
 		return result;
@@ -144,6 +149,8 @@ export class AuthService extends BaseService {
 			);
 			if (error_code != 0 && error_message != "") {
 				throw new ErrorResponse({
+					source: error,
+					code: error_code,
 					message: error_message,
 				});
 			}
@@ -192,7 +199,7 @@ export class AuthService extends BaseService {
 				result.access_token_expiry_time = new Date(
 					temp.AccessToken_ExpiryTime
 				);
-				result.user = await this.introspectUser(
+				result.people = await this.introspectUser(
 					new Auth({
 						access_token: result.access_token,
 					})
@@ -211,6 +218,7 @@ export class AuthService extends BaseService {
 			);
 			if (error_code != 0 && error_message != "") {
 				throw new ErrorResponse({
+					source: error,
 					message: error_message,
 				});
 			}
@@ -219,7 +227,7 @@ export class AuthService extends BaseService {
 		return result;
 	}
 	async introspectUser(_auth: Auth) {
-		var result = new User();
+		var result = new PeopleModel();
 
 		try {
 			/* config */
@@ -242,8 +250,8 @@ export class AuthService extends BaseService {
 			var resp = await axios.post(url, post_data, config);
 			if (_.has(resp, "data.IntrospectResponse.UserDetails")) {
 				resp = resp.data.IntrospectResponse.UserDetails;
-				result.id = _.get(resp, "Username", "");
-				result.name = _.get(resp, "Username", "");
+				result.external_id = _.get(resp, "Username", "");
+				result.first_name = _.get(resp, "Username", "");
 			}
 		} catch (error) {
 			var error_code = _.get(
@@ -258,6 +266,7 @@ export class AuthService extends BaseService {
 			);
 			if (error_code != 0 && error_message != "") {
 				throw new ErrorResponse({
+					source: error,
 					message: error_message,
 				});
 			}
@@ -307,6 +316,7 @@ export class AuthService extends BaseService {
 			);
 			if (error_code != 0 && error_message != "") {
 				throw new ErrorResponse({
+					source: error,
 					message: error_message,
 				});
 			}
@@ -352,6 +362,7 @@ export class AuthService extends BaseService {
 			);
 			if (error_code != 0 && error_message != "") {
 				throw new ErrorResponse({
+					source: error,
 					message: error_message,
 				});
 			}
@@ -363,26 +374,38 @@ export class AuthService extends BaseService {
 		var result = new Auth();
 		try {
 			var isas_login_resp = await this.isasLogin(_auth);
-			var user = new User({
-				id: isas_login_resp.user?.id,
-				name: isas_login_resp.user?.id,
-			});
+			var people = isas_login_resp.people;
+
+			var people_service = new PeopleService();
+			var people_list = await people_service.getPeople(people);
+			if (people_list.length == 0) {
+				people = await people_service.insertPeople(
+					new PeopleModel({
+						external_id: people.external_id,
+						people_type: PeopleModel.PEOPLE_TYPE.employee,
+						is_active: true,
+					})
+				);
+			} else {
+				people = people_list[0];
+			}
 			var usersession_service = new UserSessionService();
 			var new_usersession = await usersession_service.insert(
 				new UserSession({
 					isas_access_token: isas_login_resp.access_token,
 					isas_refresh_token: isas_login_resp.refresh_token,
-					user_id: user.id,
-					created_by: user.id,
-					user_info: user,
+					people_id: people.id,
+					created_by: people.id,
+					people_info: people,
+					lsl_access_token: this.getToken(
+						people,
+						isas_login_resp.access_token_expiry_time
+					),
 				})
 			);
-			result.access_token = this.getToken(
-				user,
-				isas_login_resp.access_token_expiry_time
-			);
+			result.access_token = new_usersession.lsl_access_token;
 			result.refresh_token = new_usersession.refresh_token;
-			result.user = new_usersession.user_info;
+			result.people = new_usersession.people_info;
 		} catch (error) {
 			throw error;
 		}
@@ -393,21 +416,20 @@ export class AuthService extends BaseService {
 		var result = new Auth();
 		try {
 			var usersession_service = new UserSessionService();
-			var user_session:
-				| UserSession
-				| Array<UserSession> = await usersession_service.get(
+			var usersession_list: Array<UserSession> = await await usersession_service.get(
 				new UserSession({
 					refresh_token: _auth.refresh_token,
 				})
 			);
-			if (!_.has(user_session, "0")) {
+			if (usersession_list.length == 0) {
 				throw new ErrorResponse({
 					message: "session invalid",
 				});
 			}
-			user_session = user_session[0];
+
+			var user_session: UserSession = usersession_list[0];
 			/* throw error if usersession is expired */
-			if ((user_session as UserSession).is_expired == true) {
+			if (user_session.is_expired == true) {
 				throw new ErrorResponse({ message: "session expired" });
 			}
 			/* refresh isas token */
@@ -423,7 +445,7 @@ export class AuthService extends BaseService {
 			if (isas_refresh_token_error != null) {
 				/* set user session as expired */
 				user_session.is_expired = true;
-				user_session.killed_by = user_session.user_id;
+				user_session.killed_by = user_session.people_id;
 				user_session.end_time = new Date();
 				await usersession_service.update(user_session);
 				/* throw error */
@@ -439,7 +461,7 @@ export class AuthService extends BaseService {
 			);
 			/* form result */
 			result.access_token = this.getToken(
-				user_session.user_info,
+				user_session.people_info,
 				(isas_refresh_token_resp as Auth).access_token_expiry_time
 			);
 			result.refresh_token = updated_user_session.refresh_token;
@@ -452,22 +474,21 @@ export class AuthService extends BaseService {
 		var result: boolean = false;
 		try {
 			var usersession_service = new UserSessionService();
-			var user_session:
-				| UserSession
-				| Array<UserSession> = await usersession_service.get(
+			var usersession_list: Array<UserSession> = await usersession_service.get(
 				new UserSession({
 					refresh_token: _auth.refresh_token,
 				})
 			);
-			if (!_.has(user_session, "0")) {
+			if (usersession_list.length == 0) {
 				throw new ErrorResponse({
 					message: "token invalid",
 				});
 			}
-			user_session = user_session[0];
+
+			var user_session: UserSession = usersession_list[0];
 			/* update session */
 			user_session.is_expired = true;
-			user_session.killed_by = user_session.user_id;
+			user_session.killed_by = user_session.people_id;
 			user_session.end_time = new Date();
 			await usersession_service.update(user_session);
 			/* isas logout */
@@ -494,21 +515,40 @@ export class AuthService extends BaseService {
 			if (usersession_list.length > 0) {
 				result = usersession_list[0];
 			} else {
-				var user = await this.introspectUser(
+				var people = await this.introspectUser(
 					new Auth({ access_token: _req.isas_access_token })
 				);
+				var people_service: PeopleService = new PeopleService();
+				var people_list: Array<PeopleModel> = await people_service.getPeople(
+					new PeopleModel({
+						external_id: people.external_id,
+					})
+				);
+
+				if (people_list.length == 0) {
+					people = await people_service.insertPeople(
+						new PeopleModel({
+							external_id: people.external_id,
+							people_type: PeopleModel.PEOPLE_TYPE.employee,
+							is_active: true,
+						})
+					);
+				} else {
+					people = people_list[0];
+				}
+
 				var jwt_helper = new JwtHelper();
 				var lsl_access_token = this.getToken(
-					user,
+					people,
 					jwt_helper.getTokenExpirationDate(_req.isas_access_token)
 				);
 				result = await usersession_service.insert(
 					new UserSession({
 						isas_access_token: _req.isas_access_token,
 						lsl_access_token,
-						user_id: user.id,
-						created_by: user.id,
-						user_info: user,
+						people_id: people.id,
+						created_by: people.id,
+						people_info: people,
 					})
 				);
 			}

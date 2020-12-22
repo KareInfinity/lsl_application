@@ -2,7 +2,7 @@ import { using, Environment } from "../../global/utils";
 import { BaseService } from "./base.service";
 import * as _ from "lodash";
 import { ItemRequest, ItemResponse, Item } from "../models/item.model";
-import { DeviceModel } from "../models/device.model";
+import { DeviceModel, DeviceModelCriteria } from "../models/device.model";
 import { DeviceService } from "./device.service";
 import { ErrorResponse } from "../../global/models/errorres.model";
 export class ItemService extends BaseService {
@@ -41,7 +41,7 @@ export class ItemService extends BaseService {
 		try {
 			var service = new DeviceService();
 			var device_list = await service.get(
-				new DeviceModel({ serial_no: _item.id, device_type: _item.type })
+				new DeviceModelCriteria({ serial_no: _item.id, device_type: _item.type })
 			);
 			if (device_list.length == 0) {
 				throw new ErrorResponse({

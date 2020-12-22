@@ -2,16 +2,18 @@ import * as _ from "lodash";
 import axios from "axios";
 import { BaseService } from "./base.service";
 import { Environment } from "../../global/utils";
-import { ECResponse, GetPluginInfoViaEC, ISASRegistrationViaEC } from "../models/misc.model";
+import {
+	ECResponse,
+	GetPluginInfoViaEC,
+	ISASRegistrationViaEC,
+} from "../models/misc.model";
 import { ErrorResponse } from "../../global/models/errorres.model";
 
 class PresetService extends BaseService {
 	registerWithISASViaEC = async (): Promise<
 		ECResponse<ISASRegistrationViaEC>
 	> => {
-		let result: ECResponse<ISASRegistrationViaEC> = new ECResponse<
-			ISASRegistrationViaEC
-		>();
+		let result: ECResponse<ISASRegistrationViaEC> = new ECResponse<ISASRegistrationViaEC>();
 		try {
 			var config = {
 				headers: {
@@ -34,9 +36,11 @@ class PresetService extends BaseService {
 					item: result,
 				});
 			}
-		} catch (error) {
+		} catch (e) {
+			var error = e;
 			if (_.get(error, "isAxiosError", false))
 				throw new ErrorResponse({
+					source: error,
 					item: _.get(error, "response.data", null),
 				});
 			else {
@@ -54,11 +58,11 @@ class PresetService extends BaseService {
 				?.Application_Id as string;
 			this.environment._ISAS_APPLICATION_SECRET = registeration_resp.data
 				?.Application_Secret as string;
-		} catch (error) {
+		} catch (e) {
+			var error = e;
 			throw error;
 		}
 	}
-	
 }
 
 export { PresetService };

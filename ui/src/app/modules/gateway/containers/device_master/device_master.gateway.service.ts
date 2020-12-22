@@ -3,6 +3,7 @@ import { environment } from "src/environments/environment";
 import { HttpHelperAuthService } from "src/app/modules/auth/service/httphelper/httphealper.auth.service";
 import { ActionReq } from "src/app/modules/global/models/actionreq.model";
 import { DeviceModel } from "../../models/device.model";
+import { InventoryStatusModel } from "../../models/inventorystatus.model";
 
 @Injectable({
   providedIn: "root",
@@ -19,6 +20,17 @@ export class DeviceMasterService {
     );
   }
 
+  getInventoryStatusList() {
+    var request: ActionReq<InventoryStatusModel> = new ActionReq<InventoryStatusModel>(
+      {
+        item: new InventoryStatusModel(),
+      }
+    );
+    return this.httpClient.post(
+      `${this.SERVER_URL}/api/Inventorystatus/get`,
+      request
+    );
+  }
   // saveCable(post_data: ActionReq<DeviceModel>) {
   //   if (post_data.item.id == 0) {
   //     return this.httpClient.post(`${this.SERVER_URL}/api/v1/devices`, post_data);

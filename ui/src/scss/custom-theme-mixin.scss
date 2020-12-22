@@ -15,9 +15,9 @@
   h5,
   h6,
   p {
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-    margin: 0px;
+    margin-bottom: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0px !important;
   }
   .h1,
   .h2,
@@ -25,9 +25,9 @@
   .h4,
   .h5,
   .h6 {
-    margin-bottom: 0px;
-    padding-bottom: 0px;
-    margin: 0px;
+    margin-bottom: 0px !important;
+    padding-bottom: 0px !important;
+    margin: 0px !important;
   }
   div,
   form,
@@ -38,7 +38,7 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: Roboto, "Helvetica Neue", sans-serif;
+    font-family: Roboto, "Helvetica Neue", sans-serif !important;
   }
   * {
     margin: 0;
@@ -78,6 +78,9 @@
   }
   .overflow-auto {
     overflow: auto;
+  }
+  .overflow-scroll {
+    overflow: scroll;
   }
   .hint_text {
     font-size: xx-small;
@@ -156,17 +159,15 @@
   //   z-index: 1;
   //   top: 1.1em;
   // }
-  .mat-tree-node {
-    min-height: 0px !important;
-  }
+
   .mat-form-field-label-wrapper {
     top: -1.2375em;
     padding-top: 0.84375em;
   }
 
-  .mat-form-field-appearance-outline .mat-form-field-infix {
-    padding: 0.4em 0 0.8em 0;
-  }
+  // .mat-form-field-appearance-outline .mat-form-field-infix {
+  //   padding: 0.4em 0 0.8em 0;
+  // }
   // ng-select.ng-invalid.ng-touched .ng-select-container {
   //   border-color: #dc3545;
   //   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 0 3px #fde6e8;
@@ -199,14 +200,104 @@
     height: 0.4em;
   }
 
+  /* scroll bar [start] */
   ::-webkit-scrollbar-track {
     // box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.7);
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: lightgrey;
   }
 
   ::-webkit-scrollbar-thumb {
-    background-color: lightgrey;
+    background-color: rgba(0, 0, 0, 0.5);
     outline: 1px solid slategrey;
   }
-  button:focus { outline: none; }
+  /* scroll bar [end] */
+
+  button:focus {
+    outline: none;
+  }
+  .ng-select .ng-select-container.ng-appearance-outline {
+    padding: 0 0.5em;
+    min-height: 50px;
+  }
+  .ng-select .ng-select-container .ng-value-container {
+    padding-bottom: 7px;
+    padding-top: 4px;
+  }
+
+  .ng-select.ng-select-single
+    .ng-select-container.ng-appearance-outline
+    .ng-clear-wrapper {
+    bottom: 10px;
+  }
+  .ng-select.ng-select-single
+    .ng-select-container.ng-appearance-outline
+    .ng-arrow-wrapper {
+    bottom: 13px;
+  }
+  .mat-form-field-label-wrapper {
+    top: -21px;
+    /* padding-top: 0.84375em; */
+  }
+  // .mat-form-field-appearance-outline .mat-form-field-infix {
+  //   padding: 0.35em 0 0.7em 0;
+  // }
+
+  .ng-select .ng-select-container .ng-value-container .ng-placeholder {
+    font: 500 14px/24px Roboto, "Helvetica Neue", sans-serif;
+  }
+  .ng-select .ng-select-container .ng-value-container .ng-input > input {
+    font: 500 14px/24px Roboto, "Helvetica Neue", sans-serif;
+    padding: 0px 10px;
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  .overflow-x-scroll {
+    overflow-x: scroll;
+  }
+  .mat-tree-node {
+    min-height: 0px !important;
+    overflow: visible !important;
+  }
+  .mat-dialog-container {
+    overflow: visible;
+  }
+  .mat-input-element {
+    font-size: 12px !important;
+    line-height: 17px !important;
+  }
+  .mat-form-field-appearance-outline .mat-form-field-label {
+    all: none;
+  }
+  .mat-form-field-appearance-outline .mat-form-field-infix {
+    padding: 0em 0 0.7em 0;
+  }
+  .mat-form-field-wrapper {
+    padding-bottom: 0.7rem;
+  }
+  .ng-select .ng-select-container .ng-value-container .ng-placeholder {
+    font-size: 12px;
+    line-height: 17px;
+    font-weight: 500;
+  }
+  .ng-select div,
+  .ng-select input,
+  .ng-select span {
+    box-sizing: border-box;
+    font-size: 12px;
+    line-height: 17px;
+    font-weight: 400;
+  }
+  .ng-select {
+    padding-bottom: 0.7em;
+  }
+  .ng-select .ng-select-container .ng-value-container .ng-input {
+    all: none;
+  }
+  .ng-select .ng-select-container {
+    min-height: 42px !important;
+}
+.mat-card{
+  border-radius: 0px !important;
+}
 }

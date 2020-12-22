@@ -2,10 +2,10 @@ import { Component, OnInit } from "@angular/core";
 import * as $ from "jquery";
 import { MatDialog } from "@angular/material";
 import { StorageAuthService } from "src/app/modules/auth/service/storage/storage.auth.service";
-import { User } from 'src/app/modules/auth/models/user.model';
 import { ApiAuthService } from 'src/app/modules/auth/service/api/api.auth.service';
 import { Settings } from 'src/app/modules/global/models/settings.model';
 import { StorageGlobalService } from 'src/app/modules/global/service/storage/storage.global.service';
+import { PeopleModel } from '../../models/people.model';
 
 @Component({
   selector: "gateway-sidebar",
@@ -18,17 +18,17 @@ export class SidebarGatewayComponent implements OnInit {
     private auth_service: ApiAuthService,
     private global_storage: StorageGlobalService
   ) {}
-  user: User = new User();
+  people: PeopleModel = new PeopleModel();
   settings: Settings = new Settings();
   menu_list: Array<any> = [
     {
       link: "master",
       label: "Master",
     },
-    {
-      link: "active",
-      label: "Active",
-    },
+    // {
+    //   link: "active",
+    //   label: "Active",
+    // },
     {
       link: "configuration",
       label: "Licences",
@@ -39,7 +39,7 @@ export class SidebarGatewayComponent implements OnInit {
     },
   ];
   ngOnInit() {
-    this.user = this.auth_storage.user;
+    this.people = this.auth_storage.people;
     this.settings = this.global_storage.settings;
   }
   logout() {

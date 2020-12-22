@@ -1,11 +1,15 @@
 import express from "express";
 import { ActionRes } from "../../global/models/actionres.model";
 import { DeviceService } from "../service/device.service";
-import { DeviceModel, DeviceModelCriteria } from "../models/device.model";
+import {
+	DeviceModel,
+	DeviceModelCriteria,
+	DeviceSoftwareVersionCriteria,
+} from "../models/device.model";
 const router = express.Router();
 import * as _ from "lodash";
 import { notification_messages } from "../utils/notificationmessages";
-import { User } from "../../auth/models/user.model";
+import { PeopleModel } from "../models/people.model";
 
 router.get("/entity", async (req, res, next) => {
 	try {
@@ -58,13 +62,14 @@ router.put("/save", async (req, res, next) => {
 			new DeviceModel({
 				...req.body.item,
 				created_by: _.get(req, "body.decoded.id", 0),
+				modified_by: _.get(req, "body.decoded.id", 0),
 			})
 		);
 		var result: ActionRes<DeviceModel> = new ActionRes<DeviceModel>({
 			item: device,
 			notification: notification_messages.device_modify(
 				device.device_type,
-				(req.body.decoded as User).name
+				(req.body.decoded as PeopleModel).external_id
 			),
 		});
 		next(result);
@@ -122,12 +127,12 @@ router.post("/getWithPagination", async (req, res, next) => {
 		var size = parseInt(_.get(req, "query.size", "10"));
 		var _device_service = new DeviceService();
 		var { items, total_count } = await _device_service.getWithPagination(
-			new DeviceModel(req.body.item),
+			new DeviceModelCriteria(req.body.item),
 			page,
 			size
 		);
-		var result: ActionRes<Array<DeviceModel>> = new ActionRes<
-			Array<DeviceModel>
+		var result: ActionRes<Array<DeviceModelCriteria>> = new ActionRes<
+			Array<DeviceModelCriteria>
 		>({
 			item: items,
 			total_count,
@@ -141,12 +146,28 @@ router.post("/get", async (req, res, next) => {
 	try {
 		var _device_service = new DeviceService();
 		var device_list = await _device_service.get(
-			new DeviceModel(req.body.item)
+			new DeviceModelCriteria(req.body.item)
 		);
-		var result: ActionRes<Array<DeviceModel>> = new ActionRes<
-			Array<DeviceModel>
+		var result: ActionRes<Array<DeviceModelCriteria>> = new ActionRes<
+			Array<DeviceModelCriteria>
 		>({
 			item: device_list,
+		});
+		next(result);
+	} catch (error) {
+		next(error);
+	}
+});
+router.post("/getDeviceSoftwareVersion", async (req, res, next) => {
+	try {
+		var _device_service = new DeviceService();
+		var list = await _device_service.getDeviceSoftwareVersion(
+			new DeviceSoftwareVersionCriteria(req.body.item)
+		);
+		var result: ActionRes<
+			Array<DeviceSoftwareVersionCriteria>
+		> = new ActionRes<Array<DeviceSoftwareVersionCriteria>>({
+			item: list,
 		});
 		next(result);
 	} catch (error) {
@@ -158,7 +179,7 @@ router.get("/:id?", async (req, res, next) => {
 		var _device_identifier = _.get(req, "params.id", "");
 		var _device_service = new DeviceService();
 		var _devices = await _device_service.get(
-			new DeviceModel({ serial_no: _device_identifier })
+			new DeviceModelCriteria({ serial_no: _device_identifier })
 		);
 		var result: ActionRes<Array<DeviceModel>> = new ActionRes<
 			Array<DeviceModel>

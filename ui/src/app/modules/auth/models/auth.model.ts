@@ -1,14 +1,15 @@
 import * as _ from "lodash";
-import { User } from "./user.model";
 import { Base } from "./base.model";
+import { PeopleModel } from "../../gateway/models/people.model";
 class Auth extends Base {
-  type?: Auth.auth_types | null;
-  method?: Auth.auth_methods | null;
-  param_1?: string;
-  param_2?: string;
-  access_token?: string;
-  refresh_token?: string;
-  user?: User;
+  type: Auth.auth_types | null = null;
+  method: Auth.auth_methods | null = null;
+  param_1: string = "";
+  param_2: string = "";
+  access_token: string = "";
+  access_token_expiry_time: Date = new Date();
+  refresh_token: string = "";
+  people: PeopleModel = new PeopleModel();
   constructor(init?: Partial<Auth>) {
     super(init);
     if (init) {
@@ -20,7 +21,9 @@ class Auth extends Base {
         this.access_token = init.access_token;
       if (typeof init.refresh_token == "string")
         this.refresh_token = init.refresh_token;
-      if (_.get(init, "user", null) != null) this.user = init.user;
+      if (init.people) this.people = init.people;
+      if (init.access_token_expiry_time instanceof Date)
+        this.access_token_expiry_time = init.access_token_expiry_time;
     }
   }
 }

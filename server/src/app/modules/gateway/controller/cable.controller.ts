@@ -33,7 +33,7 @@ router.post("/", async (req, res, next) => {
 	try {
 		var _cable_serivce = new CableService();
 		var _cable_tmp = await _cable_serivce.insertCableInfo(req.body.item);
-		var result: ActionRes<boolean> = new ActionRes<boolean>({
+		var result: ActionRes<CableModel> = new ActionRes<CableModel>({
 			item: _cable_tmp,
 		});
 		next(result);
@@ -47,11 +47,11 @@ router.put("/", async (req, res, next) => {
 		var _cable_serivce = new CableService();
 		var _cable_tmp = await _cable_serivce.updateCableInfo(req.body.item);
 		var result: ActionRes<boolean> = new ActionRes<boolean>({
-			item: _cable_tmp
-		})
+			item: _cable_tmp,
+		});
 	} catch (error) {
 		next(error);
 	}
-})
+});
 
 export { router as CableController };

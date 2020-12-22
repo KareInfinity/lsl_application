@@ -304,7 +304,7 @@ export class DevicePeopleAssociationGatewayComponent implements OnInit {
     });
     alert.afterClosed().subscribe(() => {});
   };
-  openAssociatePeopleDialog = (e, args: OnEventArgs) => {
+  openAssociatePeopleDialog = () => {
     const alert = this.dialog.open(AssociatePeopleGatewayDialog, {
       // height: "90vh",
       // width: "90vw",

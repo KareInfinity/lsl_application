@@ -1,0 +1,77 @@
+<div class="h-100 row no-gutters">
+  <div class="h-100 col-md-3 col-12 d-flex flex-column border-right bg-white">
+    <!-- <mat-card class="h-100 p-0 bg-white d-flex flex-column"> -->
+    <div class="d-flex flex-row mt-3 mx-3">
+      <p class="h5 flex-grow-1">Devices</p>
+
+      <div *ngIf="is_loading" class="ml-3">
+        <gateway-loader></gateway-loader>
+      </div>
+    </div>
+    <mat-form-field appearance="outline" class="mt-3 mx-3">
+      <mat-label>Search</mat-label>
+      <input matInput placeholder="Search" />
+    </mat-form-field>
+    <div class="flex-grow-1 overflow-auto">
+      <div
+        *ngFor="let device of enabled_device_list"
+        [ngClass]="{
+          'active': selected_device == device
+        }"
+        class="py-1 px-3 row no-gutters align-items-center"
+      >
+        <p class="text-left pr-2 mr-auto">{{ device.feature_name }}</p>
+        <i
+          *ngIf="device.feature_key == 'IV_WATCH'"
+          class="fa fa-cog"
+          (click)="selectDevice(device)"
+        ></i>
+      </div>
+    </div>
+    <!-- </mat-card> -->
+  </div>
+  <div
+    *ngIf="selected_device != null"
+    class="col-md-9 h-100 p-3 d-flex flex-column bg-white"
+  >
+    <!-- <mat-card class="h-100 bg-white col-md-12 col-12 p-0 border border-primary d-flex flex-column"
+    > -->
+    <div class="row no-gutters pb-3">
+      <p class="h5 mr-2 mr-auto">
+        Configuration for {{ selected_device.feature_name }}
+      </p>
+      <button
+        mat-raised-button
+        color="primary"
+        class="self-align-center mr-3"
+        (click)="gotoImportCables()"
+      >
+        Import
+      </button>
+      <button
+        mat-raised-button
+        color="primary"
+        class="self-align-center"
+        (click)="openAssociateCableDialog()"
+      >
+        Associate
+      </button>
+    </div>
+    <div
+      id="cable-driver-map-list-grid-container"
+      class="py-2 flex-grow-1"
+    >
+      <angular-slickgrid
+        gridId="cableDriverMapListGrid"
+        gridWidth="100%"
+        gridHeight="100%"
+        [columnDefinitions]="cable_driver_map_list_grid_column_definitions"
+        [gridOptions]="cable_driver_map_list_grid_options"
+        [dataset]="cable_driver_map_list_grid_dataset"
+        (onAngularGridCreated)="cableDriverMapList($event)"
+      >
+      </angular-slickgrid>
+    </div>
+    <!-- </mat-card> -->
+  </div>
+</div>

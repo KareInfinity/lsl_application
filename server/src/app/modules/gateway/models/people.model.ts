@@ -1,11 +1,12 @@
 import * as _ from "lodash";
 import { Base } from "./base.model";
+import { ISASHierarchyNode } from "./misc.model";
 
 export class PeopleModel extends Base {
 	id: number = 0;
 	people_type: string = "";
 	people_class: string = "";
-	people_id: string = "";
+	external_id: string = "";
 	dob: Date | null = null;
 	admission_dttm: Date | null = null;
 	first_name: string = "";
@@ -48,6 +49,7 @@ export class PeopleModel extends Base {
 	is_suspended: boolean = false;
 	parent_id: number = 0;
 	notes: string = "";
+	attributes: PeopleModel.Attributes = new PeopleModel.Attributes();
 	/* extensions */
 	// idh_session_id: number = 0;
 
@@ -59,8 +61,8 @@ export class PeopleModel extends Base {
 				this.people_type = init.people_type;
 			if (typeof init.people_class == "string")
 				this.people_class = init.people_class;
-			if (typeof init.people_id == "string")
-				this.people_id = init.people_id;
+			if (typeof init.external_id == "string")
+				this.external_id = init.external_id;
 			if (typeof init.first_name == "string")
 				this.first_name = init.first_name;
 			if (typeof init.middle_name == "string")
@@ -149,6 +151,9 @@ export class PeopleModel extends Base {
 			if (typeof init.parent_id == "number")
 				this.parent_id = init.parent_id;
 			if (typeof init.notes == "string") this.notes = init.notes;
+			if (init.attributes) {
+				this.attributes = new PeopleModel.Attributes(init.attributes);
+			}
 		}
 		/* extensions */
 		// if (typeof init?.idh_session_id == "number")
@@ -160,5 +165,24 @@ export namespace PeopleModel {
 		all = "ALL",
 		patient = "PATIENT",
 		employee = "EMPLOYEE",
+	}
+	export class Attributes {
+		facility_node: ISASHierarchyNode = new ISASHierarchyNode();
+		constructor(init?: Attributes | string) {
+			if (init) {
+				if (typeof init == "string") {
+					try {
+						init = JSON.parse(init);
+					} catch (error) {
+						init = new Attributes();
+					}
+				}
+				if (init && typeof init != "string") {
+					this.facility_node = new ISASHierarchyNode(
+						init.facility_node
+					);
+				}
+			}
+		}
 	}
 }

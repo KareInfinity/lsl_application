@@ -3,6 +3,8 @@ import { environment } from "src/environments/environment";
 import { HttpHelperAuthService } from "src/app/modules/auth/service/httphelper/httphealper.auth.service";
 import { ActionReq } from "src/app/modules/global/models/actionreq.model";
 import { DeviceModel } from "../../models/device.model";
+import { InventoryStatusModel } from "../../models/inventorystatus.model";
+import { DevicePeopleModel } from "../../models/devicepeople.model";
 
 @Injectable({
   providedIn: "root",
@@ -31,12 +33,34 @@ export class DeviceMergeService {
       request
     );
   }
-
-  // saveCable(post_data: ActionReq<DeviceModel>) {
-  //   if (post_data.item.id == 0) {
-  //     return this.httpClient.post(`${this.SERVER_URL}/api/v1/devices`, post_data);
-  //   } else {
-  //     return this.httpClient.put(`${this.SERVER_URL}/api/v1/devices`, post_data);
-  //   }
-  // }
+  getInventoryStatusList() {
+    var request = new ActionReq<InventoryStatusModel>({
+      item: new InventoryStatusModel(),
+    });
+    return this.httpClient.post(
+      `${this.SERVER_URL}/api/Inventorystatus/get`,
+      request
+    );
+  }
+  getECHierarchy() {
+    return this.httpClient.get(`${this.SERVER_URL}/api/misc/ECHierarchy`);
+  }
+  getSiteTree() {
+    return this.httpClient.get(
+      `${this.SERVER_URL}/api/misc/ISASSitePermission`
+    );
+  }
+  getAssociation(device_id: number) {
+    var request = new ActionReq<DevicePeopleModel>({
+      item: new DevicePeopleModel({
+        device_id,
+        is_active: true,
+      }),
+    });
+    return this.httpClient.post(
+      `${this.SERVER_URL}/api/v1/people/getassociations`,
+      request
+    );
+  }
+  
 }

@@ -2,7 +2,6 @@ import * as _ from "lodash";
 import { Response } from "express";
 import { ErrorResponse } from "../../global/models/errorres.model";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user.model";
 import { AuthService } from "../service/auth.service";
 import { UserSession } from "../models/usersession.model";
 const checkISASToken = async (req: any, res: Response, next: any) => {

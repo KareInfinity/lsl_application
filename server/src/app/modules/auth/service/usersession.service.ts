@@ -12,7 +12,7 @@ export class UserSessionService extends BaseService {
            ,[isas_refresh_token]
 		   ,[isas_access_token]
 		   ,[lsl_access_token]
-           ,[user_id]
+           ,[people_id]
            ,[start_time]
            ,[end_time]
            ,[last_active]
@@ -23,14 +23,14 @@ export class UserSessionService extends BaseService {
            ,[created_on]
            ,[modified_by]
            ,[modified_on]
-           ,[user_info])
+           ,[people_info])
      OUTPUT INSERTED.*
      VALUES
            (@refresh_token,
            @isas_refresh_token,
 		   @isas_access_token,
 		   @lsl_access_token,
-           @user_id,
+           @people_id,
            @start_time,
            @end_time,
            @last_active,
@@ -41,7 +41,7 @@ export class UserSessionService extends BaseService {
            @created_on,
            @modified_by, 
            @modified_on,
-           @user_info)
+           @people_info)
     `;
 	sql_get = `
     SELECT [id]
@@ -49,7 +49,7 @@ export class UserSessionService extends BaseService {
       ,[isas_refresh_token]
 	  ,[isas_access_token]
 	  ,[lsl_access_token]
-      ,[user_id]
+      ,[people_id]
       ,[start_time]
       ,[end_time]
       ,[last_active]
@@ -60,7 +60,7 @@ export class UserSessionService extends BaseService {
       ,[created_on]
       ,[modified_by]
       ,[modified_on]
-      ,[user_info]
+      ,[people_info]
     FROM [dbo].[tblUserSession]
 	`;
 	sql_get_order_by_modifiedon = `
@@ -69,7 +69,7 @@ export class UserSessionService extends BaseService {
       ,[isas_refresh_token]
 	  ,[isas_access_token]
 	  ,[lsl_access_token]
-      ,[user_id]
+      ,[people_id]
       ,[start_time]
       ,[end_time]
       ,[last_active]
@@ -80,7 +80,7 @@ export class UserSessionService extends BaseService {
       ,[created_on]
       ,[modified_by]
       ,[modified_on]
-      ,[user_info]
+      ,[people_info]
 	FROM [dbo].[tblUserSession]
 	`;
 	sql_update = `
@@ -128,9 +128,9 @@ export class UserSessionService extends BaseService {
 							_usersession.lsl_access_token
 						)
 						.input(
-							"user_id",
-							this.db.TYPES.VarChar,
-							_usersession.user_id
+							"people_id",
+							this.db.TYPES.BigInt,
+							_usersession.people_id
 						)
 						.input("start_time", this.db.TYPES.DateTime, new Date())
 						.input("end_time", this.db.TYPES.DateTime, null)
@@ -144,14 +144,14 @@ export class UserSessionService extends BaseService {
 						.input("is_active", this.db.TYPES.Bit, true)
 						.input(
 							"created_by",
-							this.db.TYPES.VarChar,
-							_usersession.user_id
+							this.db.TYPES.BigInt,
+							_usersession.people_id
 						)
 						.input("created_on", this.db.TYPES.DateTime, new Date())
 						.input(
 							"modified_by",
-							this.db.TYPES.VarChar,
-							_usersession.user_id
+							this.db.TYPES.BigInt,
+							_usersession.people_id
 						)
 						.input(
 							"modified_on",
@@ -159,9 +159,9 @@ export class UserSessionService extends BaseService {
 							new Date()
 						)
 						.input(
-							"user_info",
+							"people_info",
 							this.db.TYPES.NVarChar,
-							JSON.stringify(_usersession.user_info)
+							JSON.stringify(_usersession.people_info)
 						)
 						.query(this.sql_insert);
 					if (_.has(recordset, "0")) {
@@ -174,7 +174,7 @@ export class UserSessionService extends BaseService {
 						result.start_time = row.start_time;
 						result.end_time = row.end_time;
 						result.last_active = row.last_active;
-						result.user_id = row.user_id;
+						result.people_id = row.people_id;
 						result.killed_by = row.killed_by;
 						result.is_expired = row.is_expired;
 						result.created_by = row.created_by;
@@ -182,9 +182,9 @@ export class UserSessionService extends BaseService {
 						result.modified_by = row.modified_by;
 						result.modified_on = row.modified_on;
 						result.is_active = row.is_active;
-						result.user_info =
-							row.user_info != ""
-								? JSON.parse(row.user_info)
+						result.people_info =
+							row.people_info != ""
+								? JSON.parse(row.people_info)
 								: {};
 					}
 				} catch (transaction_error) {
@@ -231,7 +231,7 @@ export class UserSessionService extends BaseService {
 					user_session.start_time = v.start_time;
 					user_session.end_time = v.end_time;
 					user_session.last_active = v.last_active;
-					user_session.user_id = v.user_id;
+					user_session.people_id = v.people_id;
 					user_session.killed_by = v.killed_by;
 					user_session.is_expired = v.is_expired;
 					user_session.created_by = v.created_by;
@@ -239,8 +239,8 @@ export class UserSessionService extends BaseService {
 					user_session.modified_by = v.modified_by;
 					user_session.modified_on = v.modified_on;
 					user_session.is_active = v.is_active;
-					user_session.user_info =
-						v.user_info != "" ? JSON.parse(v.user_info) : {};
+					user_session.people_info =
+						v.people_info != "" ? JSON.parse(v.people_info) : {};
 					result.push(user_session);
 				});
 			});
@@ -258,8 +258,8 @@ export class UserSessionService extends BaseService {
 					this.sql_get_order_by_modifiedon
 				);
 				qb.addParameter("is_expired", 0, "=");
-				if (_usersession.user_id != "")
-					qb.addParameter("user_id", _usersession.user_id, "=");
+				if (_usersession.people_id != 0)
+					qb.addParameter("people_id", _usersession.people_id, "=");
 				qb.sort_field = "[modified_on]";
 				qb.sort_type = QueryBuilder.sort_types.desc;
 				var query_string = qb.getQuery();
@@ -277,7 +277,7 @@ export class UserSessionService extends BaseService {
 					user_session.start_time = v.start_time;
 					user_session.end_time = v.end_time;
 					user_session.last_active = v.last_active;
-					user_session.user_id = v.user_id;
+					user_session.people_id = v.people_id;
 					user_session.killed_by = v.killed_by;
 					user_session.is_expired = v.is_expired;
 					user_session.created_by = v.created_by;
@@ -285,8 +285,8 @@ export class UserSessionService extends BaseService {
 					user_session.modified_by = v.modified_by;
 					user_session.modified_on = v.modified_on;
 					user_session.is_active = v.is_active;
-					user_session.user_info =
-						v.user_info != "" ? JSON.parse(v.user_info) : {};
+					user_session.people_info =
+						v.people_info != "" ? JSON.parse(v.people_info) : {};
 					result.push(user_session);
 				});
 			});
@@ -337,7 +337,7 @@ export class UserSessionService extends BaseService {
 						)
 						.input(
 							"killed_by",
-							this.db.TYPES.VarChar,
+							this.db.TYPES.BigInt,
 							_usersession.killed_by
 						)
 						.input(
@@ -347,8 +347,8 @@ export class UserSessionService extends BaseService {
 						)
 						.input(
 							"modified_by",
-							this.db.TYPES.VarChar,
-							_usersession.user_id
+							this.db.TYPES.BigInt,
+							_usersession.people_id
 						)
 						.input(
 							"modified_on",
@@ -365,7 +365,7 @@ export class UserSessionService extends BaseService {
 						result.start_time = row.start_time;
 						result.end_time = row.end_time;
 						result.last_active = row.last_active;
-						result.user_id = row.user_id;
+						result.people_id = row.people_id;
 						result.killed_by = row.killed_by;
 						result.is_expired = row.is_expired;
 						result.created_by = row.created_by;

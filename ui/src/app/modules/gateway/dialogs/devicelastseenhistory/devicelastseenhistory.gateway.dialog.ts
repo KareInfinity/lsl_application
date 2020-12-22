@@ -87,7 +87,7 @@ export class DeviceLastSeenHistoryDialog implements OnInit {
     }
     console.log("filter ", this.date_filter, this.from_date, this.to_date);
   }
-  // getData() {
+  getData() {}
   //   this.is_loading = true;
   //   var post_data = new ActionReq<DeviceBatteryValuesCriteria>({
   //     item: new DeviceBatteryValuesCriteria({

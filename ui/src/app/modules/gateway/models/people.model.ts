@@ -1,18 +1,22 @@
 import * as _ from "lodash";
 import { Base } from "./base.model";
+import { ISASHierarchyNode } from "./misc.model";
 
 export class PeopleModel extends Base {
   id: number = 0;
   people_type: string = "";
   people_class: string = "";
-  people_id: string = "";
+  external_id: string = "";
   dob: Date | null = null;
   admission_dttm: Date | null = null;
   first_name: string = "";
   middle_name: string = "";
   last_name: string = "";
+  title: string = "";
   gender: string = "";
+  alias: string = "";
   race: string = "";
+  people_address = "";
   address: string = "";
   country_code: string = "";
   phone_home: string = "";
@@ -31,8 +35,8 @@ export class PeopleModel extends Base {
   facility: string = "";
   building: string = "";
   visit_number: string = "";
-  people_height: number = 0;
-  people_weight: number = 0;
+  people_height: string = "";
+  people_weight: string = "";
   diagnosis_code: string = "";
   is_registered: boolean = false;
   /* template */
@@ -42,6 +46,10 @@ export class PeopleModel extends Base {
   modified_on: Date = new Date();
   is_active: boolean = true;
   is_factory: boolean = false;
+  is_suspended: boolean = false;
+  parent_id: number = 0;
+  notes: string = "";
+  attributes: PeopleModel.Attributes = new PeopleModel.Attributes();
   /* extensions */
   // idh_session_id: number = 0;
 
@@ -53,11 +61,13 @@ export class PeopleModel extends Base {
         this.people_type = init.people_type;
       if (typeof init.people_class == "string")
         this.people_class = init.people_class;
-      if (typeof init.people_id == "string") this.people_id = init.people_id;
+      if (typeof init.external_id == "string")
+        this.external_id = init.external_id;
       if (typeof init.first_name == "string") this.first_name = init.first_name;
       if (typeof init.middle_name == "string")
         this.middle_name = init.middle_name;
       if (typeof init.last_name == "string") this.last_name = init.last_name;
+      if (typeof init.title == "string") this.title = init.title;
       if (init.dob instanceof Date || typeof init.dob == "string")
         this.dob = new Date(init.dob);
       if (
@@ -66,7 +76,10 @@ export class PeopleModel extends Base {
       )
         this.admission_dttm = new Date(init.admission_dttm);
       if (typeof init.gender == "string") this.gender = init.gender;
+      if (typeof init.alias == "string") this.alias = init.alias;
       if (typeof init.race == "string") this.race = init.race;
+      if (typeof init.people_address == "string")
+        this.people_address = init.people_address;
       if (typeof init.address == "string") this.address = init.address;
       if (typeof init.country_code == "string")
         this.country_code = init.country_code;
@@ -119,15 +132,42 @@ export class PeopleModel extends Base {
         typeof init.modified_on == "string"
       )
         this.modified_on = new Date(init.modified_on);
-      /* extensions */
-      // if (typeof init.idh_session_id == "number")
-      // 	this.idh_session_id = init.idh_session_id;
+      if (typeof init.is_factory == "boolean")
+        this.is_factory = init.is_factory;
+      if (typeof init.is_suspended == "boolean")
+        this.is_suspended = init.is_suspended;
+      if (typeof init.parent_id == "number") this.parent_id = init.parent_id;
+      if (typeof init.notes == "string") this.notes = init.notes;
+      if (init.attributes) {
+        this.attributes = new PeopleModel.Attributes(init.attributes);
+      }
     }
+    /* extensions */
+    // if (typeof init?.idh_session_id == "number")
+    // 	this.idh_session_id = init.idh_session_id;
   }
 }
 export namespace PeopleModel {
   export enum PEOPLE_TYPE {
     all = "ALL",
     patient = "PATIENT",
+    employee = "EMPLOYEE",
+  }
+  export class Attributes {
+    facility_node: ISASHierarchyNode = new ISASHierarchyNode();
+    constructor(init?: Attributes | string) {
+      if (init) {
+        if (typeof init == "string") {
+          try {
+            init = JSON.parse(init);
+          } catch (error) {
+            init = new Attributes();
+          }
+        }
+        if (init && typeof init != "string") {
+          this.facility_node = new ISASHierarchyNode(init.facility_node);
+        }
+      }
+    }
   }
 }

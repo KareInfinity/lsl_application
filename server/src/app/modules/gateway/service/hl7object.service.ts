@@ -15,7 +15,7 @@ import moment, { Moment } from "moment";
 
 export class HL7ObjectService extends BaseService {
 	sql_insert_patient = `INSERT tblPeople (
-		people_type, people_class, people_id, dob, admission_dttm, first_name, 
+		people_type, people_class, external_id, dob, admission_dttm, first_name, 
 		middle_name, last_name, gender, race, people_address, country_code, 
 		phone_home, phone_business, primary_language, marital_status,  
 		primary_account_no, is_discharged, discharged_dttm, is_alive, death_dttm, 
@@ -23,7 +23,7 @@ export class HL7ObjectService extends BaseService {
 		people_weight, diagnosis_code, created_by, created_on, is_active)
 		OUTPUT INSERTED.id
 		VALUES (
-		@people_type, @people_class, @people_id, @dob, @admission_dttm, @first_name, 
+		@people_type, @people_class, @external_id, @dob, @admission_dttm, @first_name, 
 		@middle_name, @last_name, @gender, @race, @people_address, @country_code, 
 		@phone_home, @phone_business, @primary_language, @marital_status,
 		@primary_account_no, @is_discharged, @discharged_dttm, @is_alive, @death_dttm,
@@ -40,7 +40,7 @@ export class HL7ObjectService extends BaseService {
 				var client = await pool.connect();
 				var qb = new this.utils.QueryBuilder(this.sql_find_patient_by_key);
 				if (_id.length > 0) {
-					qb.addParameter("people_id", _id, "=");
+					qb.addParameter("external_id", _id, "=");
 				}
 				var query_string = qb.getQuery();
 				var { recordset }: IResult<any> = await client.query(
@@ -70,7 +70,7 @@ export class HL7ObjectService extends BaseService {
 						.getRequest(transaction)
 						.input("people_type", this.db.TYPES.VarChar, _people_data.people_type)
 						.input("people_class", this.db.TYPES.VarChar, _people_data.people_class)
-						.input("people_id", this.db.TYPES.VarChar, _people_data.people_id)
+						.input("external_id", this.db.TYPES.VarChar, _people_data.external_id)
 						.input("first_name", this.db.TYPES.VarChar, _people_data.first_name)
 						.input("middle_name", this.db.TYPES.VarChar, _people_data.middle_name)
 						.input("last_name", this.db.TYPES.VarChar, _people_data.last_name)

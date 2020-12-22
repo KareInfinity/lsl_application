@@ -7,22 +7,22 @@ import {
 	DevicePeopleModel,
 	DevicePeopleModelCriteria,
 } from "../models/devicepeople.model";
-import { User } from "../../auth/models/user.model";
 import { ErrorResponse } from "../../global/models/errorres.model";
 import { DeviceService } from "./device.service";
-import { DeviceModel } from "../models/device.model";
+import { DeviceModel, DeviceModelCriteria } from "../models/device.model";
 import { CableService } from "./cable.service";
 import { CableModel } from "../models/cable.model";
 import { DriverService } from "./driver.service";
 import { DriverModel } from "../models/driver.model";
 import { CableDriverMapModel } from "../models/cabledrivermap.model";
 import axios from "axios";
+import { notification_messages } from "../utils/notificationmessages";
 export class PeopleService extends BaseService {
 	sql_get_people_with_pagination = `
 	SELECT [id]
 		,[people_type]
 		,[people_class]
-		,[people_id]
+		,[external_id]
 		,[dob]
 		,[admission_dttm]
 		,[first_name]
@@ -71,19 +71,19 @@ export class PeopleService extends BaseService {
 	fetch next @size rows only
 	`;
 	sql_get_people: string = `
-	SELECT id, people_type, people_class, people_id, dob, admission_dttm, first_name, middle_name, 
+	SELECT id, people_type, people_class, external_id, dob, admission_dttm, first_name, middle_name, 
 	last_name, title, gender, alias, race, people_address, country_code, phone_home, phone_business, 
 	primary_language, marital_status, religion, primary_account_no, is_discharged, discharged_dttm, 
 	is_alive, death_dttm, point_of_care, room, bed, facility, building, visit_number, people_height, 
 	people_weight, diagnosis_code, is_registered, created_by, modified_by, created_on, modified_on, 
-	is_active, is_suspended, parent_id, is_factory, notes
+	is_active, is_suspended, parent_id, is_factory, notes, attributes
     FROM [tblPeople]
     `;
 	sql_insert_people = `
 	INSERT INTO [dbo].[tblPeople]
 			([people_type]
 			,[people_class]
-			,[people_id]
+			,[external_id]
 			,[dob]
 			,[admission_dttm]
 			,[first_name]
@@ -127,7 +127,7 @@ export class PeopleService extends BaseService {
     	VALUES
 			(@people_type
 			,@people_class
-			,@people_id
+			,@external_id
 			,@dob
 			,@admission_dttm
 			,@first_name
@@ -168,6 +168,53 @@ export class PeopleService extends BaseService {
 			,@is_factory
 			,@notes)
 	`;
+	sql_update_people = `
+	UPDATE [tblPeople]
+		SET [people_type] = @people_type
+      	,[people_class] = @people_class
+		,[external_id] = @external_id
+		,[dob] = @dob
+		,[admission_dttm] = @admission_dttm
+		,[first_name] = @first_name
+		,[middle_name] = @middle_name
+		,[last_name] = @last_name
+		,[title] = @title
+		,[gender] = @gender
+		,[alias] = @alias
+		,[race] = @race
+		,[people_address] = @people_address
+		,[country_code] = @country_code
+		,[phone_home] = @phone_home
+		,[phone_business] = @phone_business
+		,[primary_language] = @primary_language
+		,[marital_status] = @marital_status
+		,[religion] = @religion
+		,[primary_account_no] = @primary_account_no
+		,[is_discharged] = @is_discharged
+		,[discharged_dttm] = @discharged_dttm
+		,[is_alive] = @is_alive
+		,[death_dttm] = @death_dttm
+		,[point_of_care] = @point_of_care
+		,[room] = @room
+		,[bed] = @bed
+		,[facility] = @facility
+		,[building] = @building
+		,[visit_number] = @visit_number
+		,[people_height] = @people_height
+		,[people_weight] = @people_weight
+		,[diagnosis_code] = @diagnosis_code
+		,[is_registered] = @is_registered
+		,[modified_by] = @modified_by
+		,[modified_on] = @modified_on
+		,[is_active] = @is_active
+		,[is_suspended] = @is_suspended
+		,[parent_id] = @parent_id
+		,[is_factory] = @is_factory
+		,[notes] = @notes
+		,[attributes] = @attributes
+	OUTPUT inserted.*
+	WHERE id = @id;
+	`;
 	sql_get_people_device_association: string = `
         SELECT [devicepeople].[id]
             ,[devicepeople].[device_id]
@@ -175,10 +222,10 @@ export class PeopleService extends BaseService {
             ,[device].[device_name] device_name
             ,[device].[device_type] device_type
             ,[devicepeople].[people_id] 
-            ,[people].[people_id] people_external_id
+            ,[people].[external_id] people_external_id
             ,CONCAT([people].[first_name],' ',[people].[middle_name],' ',[people].[last_name]) people_fullname
             ,[devicepeople].user_id 
-            ,[users].people_id user_external_id
+            ,[users].external_id user_external_id
             ,CONCAT([users].[first_name],' ',[users].[middle_name],' ',[users].[last_name]) user_fullname
             ,[devicepeople].[request_status]
             ,[devicepeople].[valid_from]
@@ -205,10 +252,10 @@ export class PeopleService extends BaseService {
             ,[device].[device_name] device_name
             ,[device].[device_type] device_type
             ,[devicepeople].[people_id] 
-            ,[people].[people_id] people_external_id
+            ,[people].[external_id] people_external_id
             ,CONCAT([people].[first_name],' ',[people].[middle_name],' ',[people].[last_name]) people_fullname
             ,[devicepeople].user_id 
-            ,[users].people_id user_external_id
+            ,[users].external_id user_external_id
             ,CONCAT([users].[first_name],' ',[users].[middle_name],' ',[users].[last_name]) user_fullname
             ,[devicepeople].[request_status]
             ,[devicepeople].[valid_from]
@@ -296,9 +343,9 @@ export class PeopleService extends BaseService {
 				var client = await pool.connect();
 				var query = this.sql_get_people_with_pagination;
 				var condition_array: Array<any> = [];
-				if (_req.people_id.trim().length > 0) {
+				if (_req.external_id.trim().length > 0) {
 					condition_array.push(
-						`people_id like '%${_req.people_id}%'`
+						`external_id like '%${_req.external_id}%'`
 					);
 				}
 				if (_req.people_type.trim().length > 0) {
@@ -373,6 +420,9 @@ export class PeopleService extends BaseService {
 						people_temp.id = parseInt(v.id);
 						people_temp.created_by = parseInt(v.created_by);
 						people_temp.modified_by = parseInt(v.modified_by);
+						people_temp.attributes = new PeopleModel.Attributes(
+							v.attributes
+						);
 						items.push(people_temp);
 					});
 					total_count = recordset[0].total_count;
@@ -389,10 +439,13 @@ export class PeopleService extends BaseService {
 			await using(this.db.getDisposablePool(), async (pool) => {
 				const client: ConnectionPool = await pool.connect();
 				var qb = new this.utils.QueryBuilder(this.sql_get_people);
-				if (_req.people_id.length > 0) {
-					qb.addParameter("people_id", _req.people_id, "=");
+				if (_req.id != 0) {
+					qb.addParameter("id", _req.id, "=");
 				}
-				if (_req.people_type != PeopleModel.PEOPLE_TYPE.all) {
+				if (_req.external_id.length > 0) {
+					qb.addParameter("external_id", _req.external_id, "=");
+				}
+				if (_req.people_type.length > 0) {
 					qb.addParameter("people_type", _req.people_type, "=");
 				}
 				var query_string = qb.getQuery();
@@ -418,9 +471,7 @@ export class PeopleService extends BaseService {
 	async getDevicePeople(
 		_req: DevicePeopleModelCriteria
 	): Promise<Array<DevicePeopleModelCriteria>> {
-		let result: Array<DevicePeopleModelCriteria> = new Array<
-			DevicePeopleModelCriteria
-		>();
+		let result: Array<DevicePeopleModelCriteria> = new Array<DevicePeopleModelCriteria>();
 		try {
 			await using(this.db.getDisposablePool(), async (pool) => {
 				const client: ConnectionPool = await pool.connect();
@@ -445,6 +496,20 @@ export class PeopleService extends BaseService {
 					qb.addParameter(
 						"[devicepeople].people_id",
 						_req.people_id,
+						"="
+					);
+				}
+				if (_req.people_external_id.length > 0) {
+					qb.addParameter(
+						"[people].[external_id]",
+						_req.people_external_id,
+						"="
+					);
+				}
+				if (_req.device_serial_no.length > 0) {
+					qb.addParameter(
+						"[device].[serial_no]",
+						_req.device_serial_no,
 						"="
 					);
 				}
@@ -481,9 +546,7 @@ export class PeopleService extends BaseService {
 	async getAssociatedDevices(
 		_req: DevicePeopleModelCriteria
 	): Promise<Array<DevicePeopleModelCriteria>> {
-		let result: Array<DevicePeopleModelCriteria> = new Array<
-			DevicePeopleModelCriteria
-		>();
+		let result: Array<DevicePeopleModelCriteria> = new Array<DevicePeopleModelCriteria>();
 		try {
 			await using(this.db.getDisposablePool(), async (pool) => {
 				const client: ConnectionPool = await pool.connect();
@@ -492,7 +555,7 @@ export class PeopleService extends BaseService {
 				);
 				if (_req.people_external_id.length > 0) {
 					qb.addParameter(
-						"[people].people_id",
+						"[people].external_id",
 						_req.people_external_id,
 						"="
 					);
@@ -550,9 +613,9 @@ export class PeopleService extends BaseService {
 							_req.people_class
 						)
 						.input(
-							"people_id",
+							"external_id",
 							this.db.TYPES.VarChar,
-							_req.people_id
+							_req.external_id
 						)
 						.input("dob", this.db.TYPES.DateTime, _req.dob)
 						.input(
@@ -670,15 +733,11 @@ export class PeopleService extends BaseService {
 							this.db.TYPES.BigInt,
 							_req.modified_by
 						)
-						.input(
-							"created_on",
-							this.db.TYPES.DateTime,
-							_req.created_on
-						)
+						.input("created_on", this.db.TYPES.DateTime, new Date())
 						.input(
 							"modified_on",
 							this.db.TYPES.DateTime,
-							_req.modified_on
+							new Date()
 						)
 						.input("is_active", this.db.TYPES.Bit, _req.is_active)
 						.input(
@@ -910,7 +969,7 @@ export class PeopleService extends BaseService {
 	}
 
 	async getUserPeopleDeviceInformation(
-		_logged_in_user: User,
+		_logged_in_user: PeopleModel,
 		_req: DevicePeopleModelCriteria
 	): Promise<{
 		user: PeopleModel;
@@ -930,18 +989,21 @@ export class PeopleService extends BaseService {
 			/* get User */
 			var user_list: Array<PeopleModel> = await this.getPeople(
 				new PeopleModel({
-					people_id: _logged_in_user.id?.toString(),
+					id: _logged_in_user.id,
 				})
 			);
 			if (user_list.length == 0) {
-				user = await this.insertPeople(
-					new PeopleModel({
-						people_id: _logged_in_user.id,
-						first_name: _logged_in_user.name,
-						is_active: true,
-						people_type: PeopleModel.PEOPLE_TYPE.employee,
-					})
-				);
+				// user = await this.insertPeople(
+				// 	new PeopleModel({
+				// 		people_id: _logged_in_user.id,
+				// 		first_name: _logged_in_user.name,
+				// 		is_active: true,
+				// 		people_type: PeopleModel.PEOPLE_TYPE.employee,
+				// 	})
+				// );
+				throw new ErrorResponse({
+					message: "User not found",
+				});
 			} else {
 				user = user_list[0];
 			}
@@ -949,20 +1011,25 @@ export class PeopleService extends BaseService {
 			/* Get people */
 			var people_list: Array<PeopleModel> = await this.getPeople(
 				new PeopleModel({
-					people_id: _req.people_external_id,
+					external_id: _req.people_external_id,
 				})
 			);
 			if (people_list.length == 0) {
-				throw new ErrorResponse({
-					message: "People not found",
-				});
+				people = await this.insertPeople(
+					new PeopleModel({
+						external_id: _req.people_external_id,
+						is_active: true,
+						people_type: PeopleModel.PEOPLE_TYPE.patient,
+					})
+				);
+			} else {
+				people = people_list[0];
 			}
-			people = people_list[0];
 
 			/* ger Device */
 			var device_service = new DeviceService();
 			var device_list = await device_service.get(
-				new DeviceModel({
+				new DeviceModelCriteria({
 					serial_no: _req.device_serial_no,
 					device_type: _req.device_type,
 				})
@@ -980,7 +1047,10 @@ export class PeopleService extends BaseService {
 		return { user, people, device };
 	}
 
-	async associate(_logged_in_user: User, _req: DevicePeopleModelCriteria) {
+	async associate(
+		_logged_in_user: PeopleModel,
+		_req: DevicePeopleModelCriteria
+	) {
 		var result: boolean = false;
 		try {
 			/* get user, people and device information */
@@ -1054,6 +1124,7 @@ export class PeopleService extends BaseService {
 					}
 					var driver = driver_list[0];
 					is_associated = await this.saveDexcomAssociationDissociationOnPreceptService(
+						_req,
 						{
 							DongleId: "",
 							DriverId: driver.precent_driver_id,
@@ -1095,7 +1166,10 @@ export class PeopleService extends BaseService {
 		}
 		return result;
 	}
-	async disssociate(_logged_in_user: User, _req: DevicePeopleModelCriteria) {
+	async disssociate(
+		_logged_in_user: PeopleModel,
+		_req: DevicePeopleModelCriteria
+	) {
 		var result: boolean = false;
 		try {
 			/* get user, people and device information */
@@ -1142,12 +1216,15 @@ export class PeopleService extends BaseService {
 		}
 		return result;
 	}
-	async saveDexcomAssociationDissociationOnPreceptService(_req: {
-		DriverId: number;
-		DongleId: string;
-		Status: 0 | 1;
-		attribute: Array<{ Type: string; Value: string }>;
-	}): Promise<boolean> {
+	async saveDexcomAssociationDissociationOnPreceptService(
+		_device_people: DevicePeopleModelCriteria,
+		_req: {
+			DriverId: number;
+			DongleId: string;
+			Status: 0 | 1;
+			attribute: Array<{ Type: string; Value: string }>;
+		}
+	): Promise<boolean> {
 		var result: boolean = false;
 		try {
 			var config = {
@@ -1164,12 +1241,33 @@ export class PeopleService extends BaseService {
 					result = true;
 				} else {
 					throw new ErrorResponse({
+						code: ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE,
 						message: "Error associating device",
+						source: resp,
+						notification: notification_messages.associate_dexcom_failure(
+							_device_people.people_external_id,
+							_device_people.device_serial_no,
+							"ERROR_ON_PRECEPT"
+						),
 					});
 				}
 			}
 		} catch (error) {
-			throw error;
+			if (error instanceof ErrorResponse) {
+				throw error;
+			} else {
+				throw new ErrorResponse({
+					code: ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE,
+					message: "Error associating device",
+					source: error,
+					notification: notification_messages.associate_dexcom_failure(
+						_device_people.people_external_id,
+						_device_people.device_serial_no,
+						"ERROR_CODE : " +
+							ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE
+					),
+				});
+			}
 		}
 		return result;
 	}
@@ -1192,9 +1290,222 @@ export class PeopleService extends BaseService {
 				result = true;
 			} else {
 				throw new ErrorResponse({
+					code: ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE,
 					message: "Error associating Device",
+					source: resp,
+					notification: notification_messages.associate_IDH_failure(
+						_req.sPatientID,
+						_req.sIDHSerialNumber,
+						"ERROR_CODE : " +
+							ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE
+					),
 				});
 			}
+		} catch (error) {
+			if (error instanceof ErrorResponse) {
+				throw error;
+			} else {
+				throw new ErrorResponse({
+					code: ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE,
+					message: "Error associating Device",
+					source: error,
+					notification: notification_messages.associate_IDH_failure(
+						_req.sPatientID,
+						_req.sIDHSerialNumber,
+						"ERROR_CODE : " +
+							ErrorResponse.ErrorCodes.ERROR_ON_PRECEPT_SERVICE
+					),
+				});
+			}
+		}
+		return result;
+	}
+	async UpdatePeople(_req: PeopleModel): Promise<PeopleModel> {
+		var result: PeopleModel = new PeopleModel();
+		try {
+			await using(this.db.getDisposablePool(), async (pool) => {
+				const client: ConnectionPool = await pool.connect();
+				const transaction: Transaction = pool.getTransaction(client);
+				try {
+					await transaction.begin();
+					var result_temp: IResult<any> = await pool
+						.getRequest(transaction)
+						.input("id", this.db.TYPES.BigInt, _req.id)
+						.input(
+							"people_type",
+							this.db.TYPES.VarChar,
+							_req.people_type
+						)
+						.input(
+							"people_class",
+							this.db.TYPES.VarChar,
+							_req.people_class
+						)
+						.input(
+							"external_id",
+							this.db.TYPES.VarChar,
+							_req.external_id
+						)
+						.input("dob", this.db.TYPES.DateTime, _req.dob)
+						.input(
+							"admission_dttm",
+							this.db.TYPES.DateTime,
+							_req.admission_dttm
+						)
+						.input(
+							"first_name",
+							this.db.TYPES.VarChar,
+							_req.first_name
+						)
+						.input(
+							"middle_name",
+							this.db.TYPES.VarChar,
+							_req.middle_name
+						)
+						.input(
+							"last_name",
+							this.db.TYPES.VarChar,
+							_req.last_name
+						)
+						.input("title", this.db.TYPES.VarChar, _req.title)
+						.input("gender", this.db.TYPES.VarChar, _req.gender)
+						.input("alias", this.db.TYPES.VarChar, _req.alias)
+						.input("race", this.db.TYPES.VarChar, _req.race)
+						.input(
+							"people_address",
+							this.db.TYPES.VarChar,
+							_req.people_address
+						)
+						.input(
+							"country_code",
+							this.db.TYPES.VarChar,
+							_req.country_code
+						)
+						.input(
+							"phone_home",
+							this.db.TYPES.VarChar,
+							_req.phone_home
+						)
+						.input(
+							"phone_business",
+							this.db.TYPES.VarChar,
+							_req.phone_business
+						)
+						.input(
+							"primary_language",
+							this.db.TYPES.VarChar,
+							_req.primary_language
+						)
+						.input(
+							"marital_status",
+							this.db.TYPES.VarChar,
+							_req.marital_status
+						)
+						.input("religion", this.db.TYPES.VarChar, _req.religion)
+						.input(
+							"primary_account_no",
+							this.db.TYPES.VarChar,
+							_req.primary_account_no
+						)
+						.input(
+							"is_discharged",
+							this.db.TYPES.Bit,
+							_req.is_discharged
+						)
+						.input(
+							"discharged_dttm",
+							this.db.TYPES.DateTime,
+							_req.discharged_dttm
+						)
+						.input("is_alive", this.db.TYPES.Bit, _req.is_alive)
+						.input(
+							"death_dttm",
+							this.db.TYPES.DateTime,
+							_req.death_dttm
+						)
+						.input(
+							"point_of_care",
+							this.db.TYPES.VarChar,
+							_req.point_of_care
+						)
+						.input("room", this.db.TYPES.VarChar, _req.room)
+						.input("bed", this.db.TYPES.VarChar, _req.bed)
+						.input("facility", this.db.TYPES.VarChar, _req.facility)
+						.input("building", this.db.TYPES.VarChar, _req.building)
+						.input(
+							"visit_number",
+							this.db.TYPES.VarChar,
+							_req.visit_number
+						)
+						.input(
+							"people_height",
+							this.db.TYPES.VarChar,
+							_req.people_height
+						)
+						.input(
+							"people_weight",
+							this.db.TYPES.VarChar,
+							_req.people_weight
+						)
+						.input(
+							"diagnosis_code",
+							this.db.TYPES.NVarChar,
+							_req.diagnosis_code
+						)
+						.input(
+							"is_registered",
+							this.db.TYPES.Bit,
+							_req.is_registered
+						)
+
+						.input(
+							"modified_by",
+							this.db.TYPES.BigInt,
+							_req.modified_by
+						)
+						.input(
+							"modified_on",
+							this.db.TYPES.DateTime,
+							new Date()
+						)
+						.input("is_active", this.db.TYPES.Bit, _req.is_active)
+						.input(
+							"is_suspended",
+							this.db.TYPES.Bit,
+							_req.is_suspended
+						)
+						.input(
+							"parent_id",
+							this.db.TYPES.SmallInt,
+							_req.parent_id
+						)
+						.input("is_factory", this.db.TYPES.Bit, _req.is_factory)
+						.input("notes", this.db.TYPES.VarChar, _req.notes)
+						.input(
+							"attributes",
+							this.db.TYPES.NVarChar,
+							JSON.stringify(_req.attributes)
+						)
+						.query(this.sql_update_people);
+					if (_.has(result_temp, "recordset.0")) {
+						var record = result_temp.recordset[0];
+						result = new PeopleModel(record);
+						result.id = parseInt(record.id);
+						result.created_by = parseInt(record.created_by);
+						result.modified_by = parseInt(record.modified_by);
+						result.parent_id = parseInt(record.parent_id);
+						result.attributes = new PeopleModel.Attributes(
+							record.attributes
+						);
+					}
+					await transaction.commit();
+				} catch (error) {
+					if (!(error instanceof ErrorResponse)) {
+						await transaction.rollback();
+					}
+					throw error;
+				}
+			});
 		} catch (error) {
 			throw error;
 		}

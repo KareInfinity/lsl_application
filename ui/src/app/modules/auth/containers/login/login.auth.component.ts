@@ -56,8 +56,7 @@ export class LoginAuthComponent {
           if (resp.item) {
             localStorage.setItem("token", resp.item.access_token);
             localStorage.setItem("refresh_token", resp.item.refresh_token);
-            localStorage.setItem("user_data",JSON.stringify(resp.item.user))
-            this.auth_storage.user = resp.item.user;
+            this.auth_storage.people = resp.item.people;
             if (this.auth_storage.redirect_url.length > 0) {
               this.router.navigateByUrl(this.auth_storage.redirect_url);
             } else {

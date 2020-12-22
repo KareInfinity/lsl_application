@@ -69,4 +69,10 @@ export class AssociateCableGatewayDialog implements OnInit {
       );
     }
   }
+  createCable(_req: string) {
+    return new CableModel({
+      cable_name: _req,
+      driver_id: 1,
+    });
+  }
 }

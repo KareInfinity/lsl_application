@@ -3,7 +3,10 @@ import { NgForm } from "@angular/forms";
 import { MatDialogRef, MAT_DIALOG_DATA } from "@angular/material";
 import { ToastrService } from "ngx-toastr";
 import { ActionReq } from "src/app/modules/global/models/actionreq.model";
-import { DevicePeopleModelCriteria } from "../../models/devicepeople.model";
+import {
+  DevicePeopleModel,
+  DevicePeopleModelCriteria,
+} from "../../models/devicepeople.model";
 import { AssociatePeopleGatewayDialogService } from "./associatepeople.gateway.dialog.service";
 import * as _ from "lodash";
 @Component({
@@ -14,10 +17,12 @@ import * as _ from "lodash";
 export class AssociatePeopleGatewayDialog {
   constructor(
     public dialogRef: MatDialogRef<AssociatePeopleGatewayDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: DevicePeopleModelCriteria,
     private service: AssociatePeopleGatewayDialogService,
     private toatr_service: ToastrService
-  ) {}
+  ) {
+    this.device_people = this.data;
+  }
   is_loading: boolean = false;
   device_people: DevicePeopleModelCriteria = new DevicePeopleModelCriteria();
   device_type_list: Array<string> = ["IDH", "DexcomG6"];
@@ -35,6 +40,7 @@ export class AssociatePeopleGatewayDialog {
         .subscribe(
           (resp) => {
             this.toatr_service.success("Associated successfully");
+            this.dialogRef.close(true);
           },
           (err) => {
             var message = "Association failed";

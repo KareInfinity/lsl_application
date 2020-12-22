@@ -461,7 +461,7 @@ export class DeviceDataGatewayComponent {
         temp.idh_ip_address = idh.ip_address;
         temp.idh_mac_address = idh.mac_address;
         temp.idh_serial_no = idh.serial_no;
-        temp.idh_facility = idh.facility;
+        temp.idh_facility = idh.facility.Name;
         temp.idh_tags = idh.tags;
         temp.idh_physical_location = idh.physical_location;
         temp.idh_attributes = idh.attributes;

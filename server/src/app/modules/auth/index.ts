@@ -32,6 +32,7 @@ router.use((err: any, req: any, res: any, next: any) => {
 	if (err instanceof ErrorResponse) {
 		var TAG = "[HANDLED_FAILURE]\t";
 		logger.error(TAG + error_log_data);
+		delete err.source;
 		res.status(400).send(err);
 	} else {
 		var TAG = "[UNHANDLED_FAILURE]\t";

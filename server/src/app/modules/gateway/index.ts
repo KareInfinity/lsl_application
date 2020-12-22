@@ -17,9 +17,9 @@ router.use("/", GatewayRoutes);
 /* Notification Handler */
 router.use(async (item: any, req: any, res: any, next: any) => {
 	if (_.get(item, "notification", null) != null) {
-		if (_.get(item, "error_message", "") != "")
-			item.notification.msg_text =
-				item.notification.msg_text + ",because " + item.error_message;
+		// if (_.get(item, "error_message", "") != "")
+		// 	item.notification.msg_text =
+		// 		item.notification.msg_text + ",because " + item.error_message;
 		var service: NotificationService = new NotificationService();
 		if (item.notification.msg_additional_data == "")
 			item.notification.msg_additional_data = JSON.stringify(item.item);
@@ -47,6 +47,7 @@ router.use((err: any, req: any, res: any, next: any) => {
 	if (err instanceof ErrorResponse) {
 		var TAG = "[HANDLED_FAILURE]\t";
 		logger.error(TAG + error_log_data);
+		delete err.source;
 		res.status(400).send(err);
 	} else {
 		var TAG = "[UNHANDLED_FAILURE]\t";

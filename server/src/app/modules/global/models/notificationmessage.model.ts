@@ -7,6 +7,7 @@ export class NotificationMessage {
 	msg_type: string = "";
 	msg_text: string = "";
 	msg_additional_data: string = "";
+	activity_status: string = "SUCCESS";
 	constructor(init?: Partial<NotificationMessage>) {
 		if (init) {
 			// if (typeof init.id == "number") this.id = init.id;
@@ -20,6 +21,8 @@ export class NotificationMessage {
 				this.msg_profile_priority = init.msg_profile_priority;
 			if (typeof init.msg_additional_data == "string")
 				this.msg_additional_data = init.msg_additional_data;
+			if (typeof init.activity_status == "string")
+				this.activity_status = init.activity_status;
 		}
 	}
 }

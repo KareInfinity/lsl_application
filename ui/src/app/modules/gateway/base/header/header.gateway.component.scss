@@ -1,0 +1,40 @@
+.icu-logo {
+  background: transparent var(--branding-icu-full-white) no-repeat right center;
+  background-position: left;
+  background-size: contain;
+  width: 160px;
+  height: 40px;
+}
+.lifeshield-logo {
+  background: transparent var(--branding-lifeshield-white) no-repeat right center;
+  background-size: contain;
+  width: 160px;
+  height: 40px;
+}
+.menu-bar-item {
+  cursor: pointer;
+  outline: none;
+  span {
+    color: lightgray;
+    font-size: 14px;
+    font-weight: normal;
+  }
+  &.active {
+    span {
+      color: var(--primary);
+      font-size: 16px;
+    }
+  }
+  // &:hover:not(.active){
+  //   span{
+  //     font-size: 16px;
+  //     color: white
+  //   }
+    
+  // }
+}
+.avatar {
+  object-fit: cover;
+  width: 30px;
+  height: 30px;
+}

@@ -16,6 +16,7 @@ import {
 } from "../../models/devicepeople.model";
 import { ActionReq } from "src/app/modules/global/models/actionreq.model";
 import { ActionRes } from "src/app/modules/global/models/actionres.model";
+import { PeopleModel } from "../../models/people.model";
 @Component({
   selector: "gateway-userassociationlogs-dialog",
   templateUrl: "./userassociationlogs.gateway.dialog.html",
@@ -24,7 +25,7 @@ import { ActionRes } from "src/app/modules/global/models/actionres.model";
 export class UserAssociationLogsGatewayDialog implements OnInit {
   constructor(
     public dialogRef: MatDialogRef<UserAssociationLogsGatewayDialog>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
+    @Inject(MAT_DIALOG_DATA) public data: PeopleModel,
     private service: UserAssociationGatewayService,
     private toastr_service: ToastrService
   ) {}
@@ -59,7 +60,7 @@ export class UserAssociationLogsGatewayDialog implements OnInit {
     this.is_loading = true;
     var request = new ActionReq<DevicePeopleModelCriteria>({
       item: new DevicePeopleModelCriteria({
-        user_id: this.data.user_id,
+        user_id: this.data.id,
       }),
     });
     this.service

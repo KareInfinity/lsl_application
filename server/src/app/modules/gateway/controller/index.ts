@@ -13,6 +13,9 @@ import { HL7HandlerController } from "./hl7handler.controller";
 import { UI } from "bull-board";
 import { MiscController } from "./misc.controller";
 import { checkISASToken } from "../../auth/middleware/isas.middleware";
+import { InventoryStatusController } from "./inventorystatus.controller";
+import { DeviceInventoryStatusController } from "./deviceinventorystatus.controller";
+import { AppSettingsController } from "./appsettings.controller";
 
 const router = express.Router();
 const environment = Environment.getInstance();
@@ -29,7 +32,9 @@ router.use("/driver", DriverController);
 router.use("/cable", CableController);
 router.use("/cabledrivermap", CableDriverMapController);
 router.use("/misc", MiscController);
-
+router.use("/inventorystatus", InventoryStatusController);
+router.use("/deviceinventorystatus", DeviceInventoryStatusController);
 router.use("/item", ItemController);
 router.use("/referencedata", ReferenceListController);
+router.use("/appsettings", AppSettingsController);
 export { router as GatewayRoutes };
